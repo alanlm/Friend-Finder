@@ -1,9 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_login"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="edu.csulb.android.friendfinder.LoginActivity">
 
-</android.support.constraint.ConstraintLayout>
+    <ImageView
+        android:layout_height="150dp"
+        app:srcCompat="@mipmap/friend_icon"
+        android:layout_marginTop="43dp"
+        android:id="@+id/login_friend_icon"
+        android:layout_width="150dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:ems="10"
+        android:layout_marginTop="65dp"
+        android:id="@+id/username_login"
+        android:hint="Username"
+        android:inputType="text"
+        android:maxLength="12"
+        android:layout_below="@+id/login_friend_icon"
+        android:layout_centerHorizontal="true" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="textPassword"
+        android:gravity="center"
+        android:ems="10"
+        android:layout_below="@+id/username_login"
+        android:layout_alignLeft="@+id/username_login"
+        android:layout_alignStart="@+id/username_login"
+        android:id="@+id/password_login"
+        android:hint="Password"
+        android:maxLength="12"/>
+
+
+    <Button
+        android:text="Sign Up"
+        android:onClick="onClick"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/signup_button"
+        style="@android:style/Widget.Button"
+        android:background="@android:color/holo_blue_light"
+        android:textSize="18sp"
+        android:textColor="@android:color/background_light"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true" />
+
+    <Button
+        android:text="Login"
+        android:onClick="onClick"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/login_button"
+        style="@android:style/Widget.Button"
+        android:background="@android:color/holo_blue_bright"
+        android:textSize="18sp"
+        android:textColor="@android:color/background_light"
+        android:layout_above="@+id/signup_button"
+        android:layout_alignParentStart="true" />
+</RelativeLayout>
