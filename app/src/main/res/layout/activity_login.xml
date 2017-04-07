@@ -9,7 +9,7 @@
 
     <ImageView
         android:layout_height="150dp"
-        app:srcCompat="@mipmap/friend_icon"
+        android:src="@mipmap/friend_icon"
         android:layout_marginTop="43dp"
         android:id="@+id/login_friend_icon"
         android:layout_width="150dp"
