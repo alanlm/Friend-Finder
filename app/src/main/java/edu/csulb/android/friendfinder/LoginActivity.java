@@ -1,9 +1,8 @@
 package edu.csulb.android.friendfinder;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.text.TextUtils;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -13,34 +12,49 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
-public class LoginActivity extends Activity {
+public class LoginActivity extends AppCompatActivity {
     private EditText mEmailField;
     private EditText mPasswordField;
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
 
+    private String mCustomToken;
+    private TokenBroadcastReceiver mTokenReceiver;
+    private DatabaseReference mDatabase;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        mEmailField = (EditText) findViewById(R.id.email_login);
-        mPasswordField = (EditText) findViewById(R.id.password_login);
 
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+        // Create token receiver
+        mTokenReceiver = new TokenBroadcastReceiver() {
+            @Override
+            public void onNewToken(String token) {
+                setCustomToken(token);
+                User user = new User(token);
+                mDatabase.child("users").child(token).setValue(user);
+            }
+        };
+
+        // [START initialize_auth]
         mAuth = FirebaseAuth.getInstance();
+        // [END initialize_auth]
 
-        mAuthListener = new FirebaseAuth.AuthStateListener(){
-
+        // [START auth_state_listener]
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
-                if(user != null){
+                if (user != null) {
                     // User is signed in
-                    // TODO: transfer to map activity
-                }
-                else{
+                } else {
                     // User is signed out
                 }
             }
@@ -48,85 +62,56 @@ public class LoginActivity extends Activity {
     }
 
     @Override
-    public void onStart(){
+    public void onStart() {
         super.onStart();
         mAuth.addAuthStateListener(mAuthListener);
+        // [START_EXCLUDE]
+        registerReceiver(mTokenReceiver, TokenBroadcastReceiver.getFilter());
+        // [END_EXCLUDE]
     }
+    // [END on_start_add_listener]
 
-    public void onStop(){
+    // [START on_stop_remove_listener]
+    @Override
+    public void onStop() {
         super.onStop();
-        if(mAuthListener != null){
+        if (mAuthListener != null) {
             mAuth.removeAuthStateListener(mAuthListener);
         }
+        // [START_EXCLUDE]
+        unregisterReceiver(mTokenReceiver);
+        // [END_EXCLUDE]
     }
+    // [END on_stop_remove_listener]
 
-    private void createAccount(String email, String password){
-        if(!validateForm()){
-            return;
-        }
-
-        mAuth.createUserWithEmailAndPassword(email,password)
+    private void startSignIn() {
+        // Initiate sign in with custom token
+        // [START sign_in_custom]
+        mAuth.signInWithCustomToken(mCustomToken)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        if(!task.isSuccessful()){
-                            Toast.makeText(LoginActivity.this, "Authentication Failed",
+                        if (!task.isSuccessful()) {
+                            Toast.makeText(LoginActivity.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
+        // [END sign_in_custom]
     }
 
-    private void signIn(String email, String password){
-        if(!validateForm()){
-            return;
-        }
 
-        mAuth.signInWithEmailAndPassword(email,password)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>(){
+    private void setCustomToken(String token) {
+        mCustomToken = token;
 
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if(!task.isSuccessful()){
-                            Toast.makeText(LoginActivity.this, "Authentication Failed",
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
+        // Enable/disable sign-in button and show the token
+        findViewById(R.id.login_button).setEnabled((mCustomToken != null));
     }
 
-    private boolean validateForm() {
-        boolean valid = true;
-
-        String email = mEmailField.getText().toString();
-        if (TextUtils.isEmpty(email)) {
-            mEmailField.setError("Required.");
-            valid = false;
-        } else {
-            mEmailField.setError(null);
-        }
-
-        String password = mPasswordField.getText().toString();
-        if (TextUtils.isEmpty(password)) {
-            mPasswordField.setError("Required.");
-            valid = false;
-        } else {
-            mPasswordField.setError(null);
-        }
-
-        return valid;
-    }
-
-    public void onClick(View view){
-        switch (view.getId()){
-            case R.id.login_button:
-                signIn(mEmailField.getText().toString(), mPasswordField.getText().toString());
-                break;
-            case R.id.signup_button:
-                createAccount(mEmailField.getText().toString(), mPasswordField.getText().toString());
-                break;
-            default:
-                break;
+    public void onClick(View v) {
+        int i = v.getId();
+        if (i == R.id.login_button) {
+            startSignIn();
         }
     }
 }
