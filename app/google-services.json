@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "916807404087",
+    "firebase_url": "https://friend-finder-6afd1.firebaseio.com",
+    "project_id": "friend-finder-6afd1",
+    "storage_bucket": "friend-finder-6afd1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:916807404087:android:8a9b51f7d2535d9d",
+        "android_client_info": {
+          "package_name": "edu.csulb.android.friendfinder"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "916807404087-a2gnm8j5o6n5uv1h42hra45fcm792hbn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "edu.csulb.android.friendfinder",
+            "certificate_hash": "d42268e0c161d1f02723de83bf38d4b4ced47fca"
+          }
+        },
+        {
+          "client_id": "916807404087-ac4906askd5s7us0ddl2111dg4cs0f0r.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDq-AtlsqpfX1owj6gYvVDWLE3Oq_Zw2Go"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "916807404087-ac4906askd5s7us0ddl2111dg4cs0f0r.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
