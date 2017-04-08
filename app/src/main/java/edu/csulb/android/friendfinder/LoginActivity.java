@@ -1,8 +1,10 @@
 package edu.csulb.android.friendfinder;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -15,9 +17,16 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+
 public class LoginActivity extends AppCompatActivity {
-    private EditText mEmailField;
-    private EditText mPasswordField;
+    private EditText usernameField;
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
@@ -31,6 +40,16 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        String username = "";
+        username = readFromFile();
+
+        if(username.equals("")) {
+            usernameField = (EditText) findViewById(R.id.username_login);
+            username = usernameField.getText().toString();
+            writeToFile(username);
+        }
+
+
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
         // Create token receiver
@@ -38,6 +57,7 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onNewToken(String token) {
                 setCustomToken(token);
+                // add user to database
                 User user = new User(token);
                 mDatabase.child("users").child(token).setValue(user);
             }
@@ -112,6 +132,41 @@ public class LoginActivity extends AppCompatActivity {
         int i = v.getId();
         if (i == R.id.login_button) {
             startSignIn();
+        }
+    }
+
+    public String readFromFile() {
+
+        String name = "";
+
+        try {
+            InputStream inputStream = openFileInput("data.txt");
+
+            if ( inputStream != null ) {
+                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                name = bufferedReader.readLine();
+            }
+
+        }
+        catch (FileNotFoundException e) {
+            Log.e("login activity", "File not found: " + e.toString());
+        } catch (IOException e) {
+            Log.e("login activity", "Can not read file: " + e.toString());
+        }
+
+        return name;
+    }
+
+    public void writeToFile(String data) {
+        try {
+            FileOutputStream fou = openFileOutput("data.txt", Context.MODE_PRIVATE);
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fou);
+            outputStreamWriter.write(data);
+            outputStreamWriter.close();
+        }
+        catch (IOException e) {
+            Log.e("Exception", "File write failed: " + e.toString());
         }
     }
 }
