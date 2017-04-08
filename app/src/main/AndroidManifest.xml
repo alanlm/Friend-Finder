@@ -8,10 +8,10 @@
         android:allowBackup="true"
         android:icon="@mipmap/friend_icon"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/friend_icon"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".LoginActivity">
+        <activity android:name=".MapActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -23,7 +23,7 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBCTXRIEPRU-nbOVqBdXghxNxtEU68dhXs" />
 
-        <activity android:name=".MapActivity"></activity>
+        <!--<activity android:name=".MapActivity"></activity>-->
     </application>
 
 </manifest> <!-- Google Maps API Key: AIzaSyBCTXRIEPRU-nbOVqBdXghxNxtEU68dhXs -->
