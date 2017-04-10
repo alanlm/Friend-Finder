@@ -3,6 +3,9 @@
     package="edu.csulb.android.friendfinder">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES"/>
 
     <application
         android:allowBackup="true"
@@ -22,7 +25,7 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBCTXRIEPRU-nbOVqBdXghxNxtEU68dhXs" />
 
-        <activity android:name=".MapActivity" />
+        <!--<activity android:name=".MapActivity" />-->
         <activity android:name=".SelectorActivity" />
     </application>
 
