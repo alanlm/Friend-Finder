@@ -52,17 +52,12 @@ public class MapActivity extends Activity implements OnMapReadyCallback,
         mapFrag = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFrag.getMapAsync(this); // sets the callback on the fragment
 
-        checkLocationPermission();
+        checkAppPermission(Manifest.permission.ACCESS_FINE_LOCATION,
+                MY_LOCATION_PERMISSION_REQUEST_CODE);
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        /* EXAMPLE of adding marker on map
-        * googleMap.addMarker(new MarkerOptions()
-        *           .position(new LatLng(0, 0))
-        *           .title("Marker"));
-        */
-
         gMap = googleMap;
 
         // initialize Google Play Services
@@ -93,35 +88,32 @@ public class MapActivity extends Activity implements OnMapReadyCallback,
         googleApiClient.connect(); // client must be connected before executing any operation
     }
 
-    public boolean checkLocationPermission() {
-        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+    public boolean checkAppPermission(String permissionString, int requestCode) {
+        if(ContextCompat.checkSelfPermission(this, permissionString)
                 != PackageManager.PERMISSION_GRANTED) {
-            Log.d("checkLocationPermission", "checkSelfPermission returned PERMISSION_DENIED");
+            Log.d("checkAppPermission", "checkSelfPermission returned PERMISSION_DENIED");
 
             // Asking user if explanation is needed
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION)) {
-                Log.d("checkLocationPermission", "shouldShowRequestPermissionRationale returns true");
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, permissionString)) {
+                Log.d("checkAppPermission", "shouldShowRequestPermissionRationale returns true");
 
                 // Show an explanation to the user *asynchronously* --
                 // don't block this thread waiting for the user's response!
                 // After the user sees the explanation, try again to request the permission
 
-                // Prompt the user once explanation has been shown
+                // Prompt the user once explanation has been shown (dialog box)
                 ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                        MY_LOCATION_PERMISSION_REQUEST_CODE);
+                        new String[]{permissionString}, requestCode);
             } else {
-                Log.d("checkLocationPermission", "shouldShowRequestPermissionRationale returns false");
+                Log.d("checkAppPermission", "shouldShowRequestPermissionRationale returns false");
 
                 // No explanation needed, we can request the permission
                 ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                        MY_LOCATION_PERMISSION_REQUEST_CODE);
+                        new String[]{permissionString}, requestCode);
             }
             return false;
         } else {
-            Log.d("checkLocationPermission", "checkSelfPermission returned PERMISSION_GRANTED");
+            Log.d("checkAppPermission", "checkSelfPermission returned PERMISSION_GRANTED");
 
             return true;
         }
@@ -170,7 +162,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback,
         if(myLocationMarker != null)
             myLocationMarker.remove();
 
-        // place current location marker
+        // place my current location marker
         LatLng latlong = new LatLng(location.getLatitude(), location.getLongitude());
         MarkerOptions myMarkerOptions = new MarkerOptions();
         myMarkerOptions.position(latlong);
