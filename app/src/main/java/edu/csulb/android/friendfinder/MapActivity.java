@@ -3,25 +3,45 @@ package edu.csulb.android.friendfinder;
 import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
+import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.UiSettings;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MapActivity extends Activity implements OnMapReadyCallback {
+public class MapActivity extends Activity implements OnMapReadyCallback,
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener,
+        LocationListener {
 
     private MapFragment mapFrag;
     private GoogleMap gMap;
     private UiSettings mapSettings;
+    private GoogleApiClient googleApiClient;
+    private LocationRequest locationRequest;
+    private Location myLastLocation;
+    private Marker myLocationMarker;
 
     private static final int MY_LOCATION_PERMISSION_REQUEST_CODE = 1;
-    private static final int LOCATION_LAYER_PERMISSION_REQUEST_CODE = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,9 +52,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
         mapFrag = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFrag.getMapAsync(this); // sets the callback on the fragment
 
-        // ------------------- REQUESTS LOCATION PERMISSION ----------------------------------------
-        requestUserPermission(Manifest.permission.ACCESS_FINE_LOCATION, MY_LOCATION_PERMISSION_REQUEST_CODE);
-        requestUserPermission(Manifest.permission.ACCESS_FINE_LOCATION, LOCATION_LAYER_PERMISSION_REQUEST_CODE);
+        checkLocationPermission();
     }
 
     @Override
@@ -47,73 +65,155 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
 
         gMap = googleMap;
 
+        // initialize Google Play Services
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if(ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED) {
+                buildGoogleApiClient();
+                gMap.setMyLocationEnabled(true);
+            }
+        } else {
+            buildGoogleApiClient();
+            gMap.setMyLocationEnabled(true);
+        }
+
         // initializing Google Map UI settings
         mapSettings = gMap.getUiSettings();
         mapSettings.setZoomControlsEnabled(true);
         mapSettings.setCompassEnabled(true);
-
-        // ---------------- CHECKS IF LOCATION PERMISSION IS GRANTED -------------------------------
-        gMap.setMyLocationEnabled(checkPermission(Manifest.permission.ACCESS_FINE_LOCATION));
-        mapSettings.setMyLocationButtonEnabled(checkPermission(Manifest.permission.ACCESS_FINE_LOCATION));
     }
 
-    public boolean checkPermission(String permission) {
-        // Method returns PackageManager.PERMISSION_GRANTED if app has permission
-        // Method returns PERMISSION_DENIED if permission denied
-        int permissionCheck = ContextCompat.checkSelfPermission(this,
-                permission);
-        if(permissionCheck == PackageManager.PERMISSION_GRANTED) {
-            Log.d("checkPermission", "permission = " + permission
-                    + ", permissionCheck = " + permissionCheck
-                    + ", PERMISSION_GRANTED = " + PackageManager.PERMISSION_GRANTED);
+    protected synchronized void buildGoogleApiClient() {
+         googleApiClient = new GoogleApiClient.Builder(this) // used to configure client
+                .addConnectionCallbacks(this) // callbacks when client connected or disconnected
+                .addOnConnectionFailedListener(this) // failed attempt of connect client to service
+                .addApi(LocationServices.API) // adds LocationServices API endpoint from Google Play Services
+                .build();
+        googleApiClient.connect(); // client must be connected before executing any operation
+    }
+
+    public boolean checkLocationPermission() {
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            Log.d("checkLocationPermission", "checkSelfPermission returned PERMISSION_DENIED");
+
+            // Asking user if explanation is needed
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION)) {
+                Log.d("checkLocationPermission", "shouldShowRequestPermissionRationale returns true");
+
+                // Show an explanation to the user *asynchronously* --
+                // don't block this thread waiting for the user's response!
+                // After the user sees the explanation, try again to request the permission
+
+                // Prompt the user once explanation has been shown
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        MY_LOCATION_PERMISSION_REQUEST_CODE);
+            } else {
+                Log.d("checkLocationPermission", "shouldShowRequestPermissionRationale returns false");
+
+                // No explanation needed, we can request the permission
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        MY_LOCATION_PERMISSION_REQUEST_CODE);
+            }
+            return false;
+        } else {
+            Log.d("checkLocationPermission", "checkSelfPermission returned PERMISSION_GRANTED");
+
             return true;
         }
-        else
-            return false;
+        // checkSelfPermission method:
+        // returns PERMISSION_GRANTED -- proceed with operation
+        // returns PERMISSION_DENIED -- has to explicitly ask user for permission
+
+        // shouldShowRequestPermissionRationale method:
+        // returns true -- if app has requested this permission previously and user denied
+        // returns false -- if user has chosen "Don't ask again" option when previously asked
     }
 
-    public void requestUserPermission(String permission, int requestCode) {
-        if (ContextCompat.checkSelfPermission(this, permission)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            // Should we show an explanation?
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, permission)) {
-
-                // Show an explanation to the user *asynchronously* -- don't block
-                // this thread waiting for the user's response! After the user
-                // sees the explanation, try again to request the permission.
-
-            } else {
-
-                // No explanation needed, we can request the permission.
-
-                ActivityCompat.requestPermissions(this, new String[]{permission}, requestCode);
-
-            }
-        }
-    }
-
+    // Will be called when user responds to permission requests
+    // This method finds out whether the permission was granted
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch(requestCode) {
             case MY_LOCATION_PERMISSION_REQUEST_CODE:
-                // if request is cancelled, the results array is empty
+                // if request is cancelled, the results arrays are empty
                 if(grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                    gMap.setMyLocationEnabled(checkPermission(permissions[0]));
-                else
-                    gMap.setMyLocationEnabled(false);
-                return;
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission was granted
+                    if(ContextCompat.checkSelfPermission(this,
+                            Manifest.permission.ACCESS_FINE_LOCATION)
+                            == PackageManager.PERMISSION_GRANTED) {
+                        if(googleApiClient == null)
+                            buildGoogleApiClient();
+                        gMap.setMyLocationEnabled(true);
+                    } else {
+                        // permission denied, Disable the functionality
+                        Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT);
+                    }
+                    return;
+                }
+                break;
 
-            case LOCATION_LAYER_PERMISSION_REQUEST_CODE:
-                if(grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                    mapSettings.setMyLocationButtonEnabled(checkPermission(permissions[0]));
-                else
-                    mapSettings.setMyLocationButtonEnabled(false);
-                return;
+            // TODO: Result of other permissions if needed
+        } // end of switch
+    }
 
-            // TODO: include other cases for permissions
+    // Will be called whenever there is change in location of device
+    @Override
+    public void onLocationChanged(Location location) {
+        myLastLocation = location;
+
+        if(myLocationMarker != null)
+            myLocationMarker.remove();
+
+        // place current location marker
+        LatLng latlong = new LatLng(location.getLatitude(), location.getLongitude());
+        MarkerOptions myMarkerOptions = new MarkerOptions();
+        myMarkerOptions.position(latlong);
+        myMarkerOptions.title("You are here!");
+        myMarkerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN));
+        myLocationMarker = gMap.addMarker(myMarkerOptions);
+
+        Log.d("onLcationChanged", "My location: " + latlong.toString());
+
+        // moving the map's camera
+        gMap.moveCamera(CameraUpdateFactory.newLatLng(latlong));
+        gMap.animateCamera(CameraUpdateFactory.zoomTo(11));
+
+        // stop location updates
+        if(googleApiClient != null)
+            LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
+    }
+
+    // Will be called whenever device is connected and disconnected
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        // locationRequest used to get quality of service for location updates
+        // from FusedLocationProviderAPI using requestLocationUpdates
+        locationRequest = new LocationRequest();
+        locationRequest.setInterval(1000);
+        locationRequest.setFastestInterval(1000);
+        locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+
+        if(ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            LocationServices.FusedLocationApi
+                    .requestLocationUpdates(googleApiClient, locationRequest, this);
         }
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    // Will be called whenever there is a failed attempt to connect the client to the service
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
     }
 }
