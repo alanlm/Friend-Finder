@@ -1,9 +1,9 @@
 package edu.csulb.android.friendfinder;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -25,7 +25,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends Activity {
     private EditText usernameField;
 
     private FirebaseAuth mAuth;
