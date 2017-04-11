@@ -1,7 +1,6 @@
 package edu.csulb.android.friendfinder;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
@@ -28,17 +27,13 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MapActivity extends Activity implements OnMapReadyCallback,
+public class MapActivity extends MapsAppBar implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
 
-    private MapFragment mapFrag;
     private GoogleMap gMap;
-    private UiSettings mapSettings;
     private GoogleApiClient googleApiClient;
-    private LocationRequest locationRequest;
-    private Location myLastLocation;
     private Marker myLocationMarker;
 
     private static final int MY_LOCATION_PERMISSION_REQUEST_CODE = 1;
@@ -49,7 +44,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback,
         setContentView(R.layout.activity_map);
 
         // reference to map fragment
-        mapFrag = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
+        MapFragment mapFrag = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFrag.getMapAsync(this); // sets the callback on the fragment
 
         checkAppPermission(Manifest.permission.ACCESS_FINE_LOCATION,
@@ -72,9 +67,10 @@ public class MapActivity extends Activity implements OnMapReadyCallback,
             buildGoogleApiClient();
             gMap.setMyLocationEnabled(true);
         }
+        Log.d("ON MAP READY", "googleApiClient status: " + googleApiClient.isConnected());
 
         // initializing Google Map UI settings
-        mapSettings = gMap.getUiSettings();
+        UiSettings mapSettings = gMap.getUiSettings();
         mapSettings.setZoomControlsEnabled(true);
         mapSettings.setCompassEnabled(true);
     }
@@ -86,16 +82,18 @@ public class MapActivity extends Activity implements OnMapReadyCallback,
                 .addApi(LocationServices.API) // adds LocationServices API endpoint from Google Play Services
                 .build();
         googleApiClient.connect(); // client must be connected before executing any operation
+
+        Log.d("BUILD GOOGLE API CLIENT", "googleApiClient connecting: " + googleApiClient.isConnecting());
     }
 
     public boolean checkAppPermission(String permissionString, int requestCode) {
         if(ContextCompat.checkSelfPermission(this, permissionString)
                 != PackageManager.PERMISSION_GRANTED) {
-            Log.d("checkAppPermission", "checkSelfPermission returned PERMISSION_DENIED");
+            Log.d("CHECK APP PERMISSION", "checkSelfPermission returned PERMISSION_DENIED");
 
             // Asking user if explanation is needed
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, permissionString)) {
-                Log.d("checkAppPermission", "shouldShowRequestPermissionRationale returns true");
+                Log.d("CHECK APP PERMISSION", "shouldShowRequestPermissionRationale returns true");
 
                 // Show an explanation to the user *asynchronously* --
                 // don't block this thread waiting for the user's response!
@@ -105,7 +103,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback,
                 ActivityCompat.requestPermissions(this,
                         new String[]{permissionString}, requestCode);
             } else {
-                Log.d("checkAppPermission", "shouldShowRequestPermissionRationale returns false");
+                Log.d("CHECK APP PERMISSION", "shouldShowRequestPermissionRationale returns false");
 
                 // No explanation needed, we can request the permission
                 ActivityCompat.requestPermissions(this,
@@ -113,7 +111,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback,
             }
             return false;
         } else {
-            Log.d("checkAppPermission", "checkSelfPermission returned PERMISSION_GRANTED");
+            Log.d("CHECK APP PERMISSION", "checkSelfPermission returned PERMISSION_GRANTED");
 
             return true;
         }
@@ -157,7 +155,9 @@ public class MapActivity extends Activity implements OnMapReadyCallback,
     // Will be called whenever there is change in location of device
     @Override
     public void onLocationChanged(Location location) {
-        myLastLocation = location;
+        // in case app needs to manipulate my last location,
+        // otherwise not needed (for right now) -- uncomment to use
+//        Location myLastLocation = location;
 
         if(myLocationMarker != null)
             myLocationMarker.remove();
@@ -170,7 +170,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback,
         myMarkerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN));
         myLocationMarker = gMap.addMarker(myMarkerOptions);
 
-        Log.d("onLcationChanged", "My location: " + latlong.toString());
+        Log.d("ON LOCATION CHANGED", "My location: " + latlong.toString());
 
         // moving the map's camera
         gMap.moveCamera(CameraUpdateFactory.newLatLng(latlong));
@@ -186,7 +186,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback,
     public void onConnected(@Nullable Bundle bundle) {
         // locationRequest used to get quality of service for location updates
         // from FusedLocationProviderAPI using requestLocationUpdates
-        locationRequest = new LocationRequest();
+        LocationRequest locationRequest = new LocationRequest();
         locationRequest.setInterval(1000);
         locationRequest.setFastestInterval(1000);
         locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
@@ -206,6 +206,16 @@ public class MapActivity extends Activity implements OnMapReadyCallback,
     // Will be called whenever there is a failed attempt to connect the client to the service
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.d("ON CONNECTION FAILED","Error code: " + connectionResult.getErrorCode()
+                + ", Error Message: " + connectionResult.getErrorMessage());
+    }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        Log.d("ON STOP", "googleApiClient calling disconnect method");
+        googleApiClient.disconnect();
+        Log.d("ON STOP", "googleApiClient connection status: " + googleApiClient.isConnected());
     }
 }
