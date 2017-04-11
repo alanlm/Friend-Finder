@@ -5,13 +5,13 @@ package edu.csulb.android.friendfinder;
  */
 
 public class User {
-    public String token;
+    public String username;
 
     public User(){
 
     }
 
-    public User(String token){
-        this.token = token;
+    public User(String username){
+        this.username = username;
     }
 }
