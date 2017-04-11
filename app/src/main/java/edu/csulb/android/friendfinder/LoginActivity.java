@@ -34,22 +34,21 @@ public class LoginActivity extends AppCompatActivity {
     private String mCustomToken;
     private TokenBroadcastReceiver mTokenReceiver;
     private DatabaseReference mDatabase;
+    private String username;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        String username = "";
         username = readFromFile();
 
         if(username.equals("")) {
             usernameField = (EditText) findViewById(R.id.username_login);
             username = usernameField.getText().toString();
             writeToFile(username);
+            username = readFromFile();
         }
-
-
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
         // Create token receiver
@@ -58,7 +57,7 @@ public class LoginActivity extends AppCompatActivity {
             public void onNewToken(String token) {
                 setCustomToken(token);
                 // add user to database
-                User user = new User(token);
+                User user = new User(username);
                 mDatabase.child("users").child(token).setValue(user);
             }
         };
