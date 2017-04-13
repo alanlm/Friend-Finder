@@ -3,9 +3,9 @@
     package="edu.csulb.android.friendfinder">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
 
     <application
         android:allowBackup="true"
@@ -14,9 +14,10 @@
         android:roundIcon="@mipmap/friend_icon"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MapActivity">
+        <activity android:name=".SelectorActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -25,8 +26,11 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBCTXRIEPRU-nbOVqBdXghxNxtEU68dhXs" />
 
-        <!--<activity android:name=".MapActivity" />-->
-        <activity android:name=".SelectorActivity" />
+        <activity
+            android:name=".MapActivity"
+            android:theme="@style/MapTheme" />
+        <!-- <activity android:name=".SelectorActivity" /> -->
+        <activity android:name=".MapsDrawer"></activity>
     </application>
 
 </manifest> <!-- Google Maps API Key: AIzaSyBCTXRIEPRU-nbOVqBdXghxNxtEU68dhXs -->
