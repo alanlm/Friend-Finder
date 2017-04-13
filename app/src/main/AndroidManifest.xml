@@ -11,10 +11,10 @@
         android:allowBackup="true"
         android:icon="@mipmap/friend_icon"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/friend_icon"
+        android:roundIcon="@mipmap/friend_icon_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".SelectorActivity">
+        <activity android:name=".MapsAppBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -29,8 +29,7 @@
         <activity
             android:name=".MapActivity"
             android:theme="@style/MapTheme" />
-        <!-- <activity android:name=".SelectorActivity" /> -->
-        <activity android:name=".MapsDrawer"></activity>
+         <activity android:name=".SelectorActivity" />
     </application>
 
 </manifest> <!-- Google Maps API Key: AIzaSyBCTXRIEPRU-nbOVqBdXghxNxtEU68dhXs -->
