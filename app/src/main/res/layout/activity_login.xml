@@ -43,4 +43,13 @@
         android:textColor="@android:color/background_light"
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true" />
+
+    <TextView
+        android:id="@+id/name_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/login_button"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="35dp"
+        android:textSize="26sp"/>
 </RelativeLayout>

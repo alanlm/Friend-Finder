@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -41,17 +42,19 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+
+        TextView textView = (TextView) findViewById(R.id.name_view);
+
         username = readFromFile();
 
-        if(username.equals("")) {
-            usernameField = (EditText) findViewById(R.id.username_login);
-            username = usernameField.getText().toString();
-            writeToFile(username);
-            username = readFromFile();
+        if(username != null){
+            textView.setText(username);
         }
 
-        mDatabase = FirebaseDatabase.getInstance().getReference();
+        mDatabase.child("users").child("uid").setValue(username);
         // Create token receiver
+        /*
         mTokenReceiver = new TokenBroadcastReceiver() {
             @Override
             public void onNewToken(String token) {
@@ -60,7 +63,7 @@ public class LoginActivity extends AppCompatActivity {
                 User user = new User(username);
                 mDatabase.child("users").child(token).setValue(user);
             }
-        };
+        };*/
 
         // [START initialize_auth]
         mAuth = FirebaseAuth.getInstance();
@@ -130,6 +133,12 @@ public class LoginActivity extends AppCompatActivity {
     public void onClick(View v) {
         int i = v.getId();
         if (i == R.id.login_button) {
+            if(username== null) {
+                usernameField = (EditText) findViewById(R.id.username_login);
+                username = usernameField.getText().toString();
+                writeToFile(username);
+            }
+            mDatabase.child("users").child("uid").setValue(username);
             startSignIn();
         }
     }
