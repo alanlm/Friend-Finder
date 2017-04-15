@@ -11,29 +11,33 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseCredentials;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.Random;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText usernameField;
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
-
     private String mCustomToken;
-    private TokenBroadcastReceiver mTokenReceiver;
     private DatabaseReference mDatabase;
     private String username;
 
@@ -42,28 +46,42 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        mDatabase = FirebaseDatabase.getInstance().getReference();
-
-        TextView textView = (TextView) findViewById(R.id.name_view);
-
-        username = readFromFile();
-
-        if(username != null){
-            textView.setText(username);
+        FileInputStream serviceAccount =
+                null;
+        try {
+            serviceAccount = new FileInputStream("res/raw/friend-finder-6afd1-firebase-adminsdk-5pk23-2412c6936.json");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            Log.d("JSON", "File not found");
         }
 
-        mDatabase.child("users").child("uid").setValue(username);
-        // Create token receiver
-        /*
-        mTokenReceiver = new TokenBroadcastReceiver() {
-            @Override
-            public void onNewToken(String token) {
-                setCustomToken(token);
-                // add user to database
-                User user = new User(username);
-                mDatabase.child("users").child(token).setValue(user);
-            }
-        };*/
+        FirebaseOptions options = new FirebaseOptions.Builder().setCredential(FirebaseCredentials.fromCertificate(serviceAccount))
+                .setDatabaseUrl("https://friend-finder-6afd1.firebaseio.com")
+                .build();
+
+        FirebaseApp.initializeApp(options);
+
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+        TextView textView = (TextView) findViewById(R.id.name_view);
+
+        // check if name is cached
+        username = readFromFile();
+
+        // if cached then show username and store in database
+        if(username != null){
+            textView.setText(username);
+            mDatabase.child("users").child("uid").setValue(username);
+        }
+
+        // generate custom token
+        FirebaseAuth.getInstance().createCustomToken(username)
+                .addOnSuccessListener(new OnSuccessListener<String>() {
+                    @Override
+                    public void onSuccess(String customToken) {
+                        // Send token back to client
+                        mCustomToken = customToken;
+                    }
+                });
 
         // [START initialize_auth]
         mAuth = FirebaseAuth.getInstance();
@@ -87,28 +105,18 @@ public class LoginActivity extends AppCompatActivity {
     public void onStart() {
         super.onStart();
         mAuth.addAuthStateListener(mAuthListener);
-        // [START_EXCLUDE]
-        registerReceiver(mTokenReceiver, TokenBroadcastReceiver.getFilter());
-        // [END_EXCLUDE]
     }
-    // [END on_start_add_listener]
 
-    // [START on_stop_remove_listener]
     @Override
     public void onStop() {
         super.onStop();
         if (mAuthListener != null) {
             mAuth.removeAuthStateListener(mAuthListener);
         }
-        // [START_EXCLUDE]
-        unregisterReceiver(mTokenReceiver);
-        // [END_EXCLUDE]
     }
-    // [END on_stop_remove_listener]
 
     private void startSignIn() {
         // Initiate sign in with custom token
-        // [START sign_in_custom]
         mAuth.signInWithCustomToken(mCustomToken)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
@@ -119,24 +127,15 @@ public class LoginActivity extends AppCompatActivity {
                         }
                     }
                 });
-        // [END sign_in_custom]
-    }
-
-
-    private void setCustomToken(String token) {
-        mCustomToken = token;
-
-        // Enable/disable sign-in button and show the token
-        findViewById(R.id.login_button).setEnabled((mCustomToken != null));
     }
 
     public void onClick(View v) {
         int i = v.getId();
         if (i == R.id.login_button) {
-            if(username== null) {
-                usernameField = (EditText) findViewById(R.id.username_login);
+            usernameField = (EditText) findViewById(R.id.username_login);
+            if(username == null && usernameField.getText().length() != 0) {
                 username = usernameField.getText().toString();
-                writeToFile(username);
+                writeToFile(username); // cache username
             }
             mDatabase.child("users").child("uid").setValue(username);
             startSignIn();
@@ -144,9 +143,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public String readFromFile() {
-
         String name = "";
-
         try {
             InputStream inputStream = openFileInput("data.txt");
 
