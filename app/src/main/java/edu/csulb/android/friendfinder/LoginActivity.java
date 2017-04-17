@@ -38,6 +38,7 @@ public class LoginActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
     private String mCustomToken;
+    private TokenBroadcastReceiver mTokenReceiver;
     private DatabaseReference mDatabase;
     private String username;
 
@@ -46,10 +47,18 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        mTokenReceiver = new TokenBroadcastReceiver() {
+            @Override
+            public void onNewToken(String token) {
+                Log.d("TOKEN", "onNewToken:"+token);
+                setCustomToken(token);
+            }
+        };
+/*
         FileInputStream serviceAccount =
                 null;
         try {
-            serviceAccount = new FileInputStream("res/raw/friend-finder-6afd1-firebase-adminsdk-5pk23-2412c6936.json");
+            serviceAccount = new FileInputStream("res/raw/firebase_admin.json");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             Log.d("JSON", "File not found");
@@ -59,7 +68,7 @@ public class LoginActivity extends AppCompatActivity {
                 .setDatabaseUrl("https://friend-finder-6afd1.firebaseio.com")
                 .build();
 
-        FirebaseApp.initializeApp(options);
+        FirebaseApp.initializeApp(options); */
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
         TextView textView = (TextView) findViewById(R.id.name_view);
@@ -74,14 +83,14 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         // generate custom token
-        FirebaseAuth.getInstance().createCustomToken(username)
+        /*FirebaseAuth.getInstance().createCustomToken(username)
                 .addOnSuccessListener(new OnSuccessListener<String>() {
                     @Override
                     public void onSuccess(String customToken) {
                         // Send token back to client
                         mCustomToken = customToken;
                     }
-                });
+                }); */
 
         // [START initialize_auth]
         mAuth = FirebaseAuth.getInstance();
@@ -94,8 +103,10 @@ public class LoginActivity extends AppCompatActivity {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user != null) {
                     // User is signed in
+                    Log.d("SIGNIN","signed in");
                 } else {
                     // User is signed out
+                    Log.d("SIGNIN","signed out");
                 }
             }
         };
@@ -105,6 +116,7 @@ public class LoginActivity extends AppCompatActivity {
     public void onStart() {
         super.onStart();
         mAuth.addAuthStateListener(mAuthListener);
+        registerReceiver(mTokenReceiver, TokenBroadcastReceiver.getFilter());
     }
 
     @Override
@@ -113,6 +125,7 @@ public class LoginActivity extends AppCompatActivity {
         if (mAuthListener != null) {
             mAuth.removeAuthStateListener(mAuthListener);
         }
+        unregisterReceiver(mTokenReceiver);
     }
 
     private void startSignIn() {
@@ -121,12 +134,25 @@ public class LoginActivity extends AppCompatActivity {
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
+                        Log.d("SIGNIN", "signInWithCustomToken:onComplete:" + task.isSuccessful());
                         if (!task.isSuccessful()) {
                             Toast.makeText(LoginActivity.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
+    }
+
+    private void setCustomToken(String token){
+        mCustomToken = token;
+
+        String status;
+        if (mCustomToken != null) {
+            status = "Token:" + mCustomToken;
+        } else {
+            status = "Token: null";
+        }
+        Log.d("STATUS",status);
     }
 
     public void onClick(View v) {
