@@ -14,7 +14,7 @@
         android:roundIcon="@mipmap/friend_icon_round"
         android:supportsRtl="true"
         android:theme="@style/MapTheme" >
-        <activity android:name=".MapsDrawer" >
+        <activity android:name=".LoginActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
