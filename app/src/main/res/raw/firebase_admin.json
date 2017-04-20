@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "friend-finder-6afd1",
+  "private_key_id": "2412c6936db31cb279d11c9af0818862c9b0d0b2",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDCxazq2kFEhlvv\n567qGz2Gf3NSo9R3gwQrz91wygKBj48ZnJ5NtNLuZkob8QTygCDh3GLr8rI98vme\neKAG2MIZDMPLVSAIJz/B32p4/OrynAWr7k3smw42JLY88w8wJ4pVSXWZ2eTXwx3+\naarlYxSJHVMLoa9auQou+3/IABkEPhElYuf98lSSAiMs3wJjFb3KD09KHTbmoBFv\nVd9zGVSVnA3OitxVxWgCrfX8S+t1m8e2SRYgdCTkgxir3sarUk2vLI1EwJegZ3OX\nAS2vNDq3n762ZNstoCDpicdOeBjNH92M5+xZZ5QjYGT7jrRfaiOpWd26tfPbIukO\ndbhVbRHLAgMBAAECgf8EkJ1846Cj+oItHUD8O6c1f8c0KKLSKj/uxvBptFJatwKj\nlwgeyh4neD5EaWG0TUx3/rJS1V1YFlnDXRBjGLFz5Nix60zU5BaadKIKM+NNzFpV\nrUAmS3wJyNJ8mzW/6y1S0mXvNSwn4mrRi6h1t9zDWeyYWTHC7pNOhpZ4GYh8kO1X\nCsO8+Pa44zktzcnP83xLAn9ermihbGER7xITiEiQUiT7aGgacEvKMGDTb/9QEAvd\nV/7DTfYzir8ZZckajAxTRw3+RUQkyUFb4EdHFh2wX2OB7cpYsnk1GWKnYt9etedL\nspwDTXs663KIWTGqygya9oJMTj3pM+RDOOf41yECgYEA8HKbglW7sU5TjqV+HtkF\nCEOm0sAhpbFYJA51CJLj+wYEwklUd8+ovebHfaV5/ut6zmyAOksrgHCTHvHOjVmf\nNq3LsOXeCihN5m6WxiZ9OXY+92VgIDITT4gdsgK4wsTs1WClJM6rSjbINHXXVBLx\n3aZiedPDULGMIjT8GA4AbJkCgYEAz17C7wjDWvSw5wY3npUuqxvxbFevrpHHgv4w\nK8Z7VXXOaUL7JAy2Swc0ol6uzIeRpw55gfMpuYkc3l6VI+4snHN7UNECJnXd3E15\n4PkmNYHddxjNWea/Ksj9dSrTixn8spKcKTknMzDQnTkYX6KEX9fH2MQw70FJ3any\nbVI9rAMCgYEA2h5tOYeCU26FWAKCbYNbEEsme0o1e7RsC5Fd02BFFcM47/JLgMBN\nB6/hSfahu4FsDvPYQolMNiBpJYofYJRrXNO90oRDrx0uxZmOhsQFlunQZuZ8k9g5\nMk18+q2DY5P2b/5S8RfVxOX7KbO4mRjydapo7LEQHhRh1eoQwdV5xwkCgYAmtRB7\n383fR3dR2DY/kqcgZ1ncGE4BrtJn4ByLv0O8Qv4hZdBM/VZ1kMXBXR0RrmiAn1IM\n8J+kMzTBSTRbfZS0K1YkUq8tEKk1+vw6Ayefqzr0hRunoUujp9qvqSvNdi9WAcnG\nZBWuF3mJL2QeTc6ZuURjcNOVhUFNb/CBeW1rkwKBgQDaH4oAzMwR9DrfmO6JtrMS\nY4erK4P+j/krEfqv+3G+M3OrWyMGFM0ZYGwJpkCsEovgVNsD2OJsy+Wc/9zp4IGc\n0sWLNeNeWaAfUNloxOfXxWUieVLrDm8su+L8TBaRDdQGWEdsxhqhcCzTARdXCF1L\nhY0eI4+r50lgdia1kMNC1A==\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-5pk23@friend-finder-6afd1.iam.gserviceaccount.com",
+  "client_id": "105020548539789060766",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://accounts.google.com/o/oauth2/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-5pk23%40friend-finder-6afd1.iam.gserviceaccount.com"
+}
