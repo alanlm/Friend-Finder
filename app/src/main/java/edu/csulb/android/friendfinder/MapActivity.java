@@ -82,7 +82,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         //==============================================================
         // SAMPLE FOR FRIENDS LIST IN THE DRAWER LAYOUT
         //==============================================================
-        // making friends list
+        // making friends list and adding friends
         List<Map<String, String>> friendsList = new ArrayList<>();
         friendsList.add(addFriend("friend", "Alan"));
         friendsList.add(addFriend("friend", "Kristian"));
@@ -279,10 +279,13 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         switch(item.getItemId()) {
             case android.R.id.home:
                 Log.d("OPTIONS ITEM SELECTED", "You clicked the custom hamburger icon");
-                if(drawerLayout.isDrawerOpen(GravityCompat.START))
+                if(drawerLayout.isDrawerOpen(GravityCompat.START)) {
                     drawerLayout.closeDrawers();
-                else
+                    drawerToggle.setHomeAsUpIndicator(R.drawable.icon_friends);
+                } else {
                     drawerLayout.openDrawer(GravityCompat.START);
+                    drawerToggle.setHomeAsUpIndicator(R.drawable.icon_map);
+                }
                 break;
             case R.id.options_map_settings:
                 Log.d("OPTIONS ITEM SELECTED", "You clicked Map Settings");
