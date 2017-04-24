@@ -18,7 +18,6 @@ public class BaseActivity extends AppCompatActivity {
             mProgressDialog.setMessage("Loading");
             mProgressDialog.setIndeterminate(true);
         }
-
         mProgressDialog.show();
     }
 
