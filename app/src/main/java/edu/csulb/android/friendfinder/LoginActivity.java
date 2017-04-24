@@ -53,6 +53,7 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
     private String username;
 
     private GoogleApiClient mGoogleApiClient;
+    private FirebaseUser fbUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,7 +95,9 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
         // if cached then show username and store in database
         if(username != null){
             textView.setText(username);
-            mDatabase.child("users").child("uid").setValue(username);
+            signIn();
+            //User user = new User(username);
+            //mDatabase.child("users").child(fbUser.getUid()).setValue(user);
         }
 
         // generate custom token
@@ -115,10 +118,10 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user = firebaseAuth.getCurrentUser();
-                if (user != null) {
+                fbUser = firebaseAuth.getCurrentUser();
+                if (fbUser != null) {
                     // User is signed in
-                    Log.d("SIGNIN","signed in as " + user.getUid());
+                    Log.d("SIGNIN","signed in as " + fbUser.getUid());
                 } else {
                     // User is signed out
                     Log.d("SIGNIN","signed out");
@@ -206,11 +209,13 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
         int i = v.getId();
         if (i == R.id.login_button) {
             usernameField = (EditText) findViewById(R.id.username_login);
-            if(username == null && usernameField.getText().length() != 0) {
+            if(usernameField.getText().toString().length() != 0) {
                 username = usernameField.getText().toString();
                 writeToFile(username); // cache username
             }
-            mDatabase.child("users").child("uid").setValue(username);
+
+            User user = new User(username);
+            mDatabase.child("users").child(fbUser.getUid()).setValue(user);
             signIn();
         }
     }
