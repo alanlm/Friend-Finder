@@ -29,7 +29,7 @@
         <activity
             android:name=".MapActivity"
             android:theme="@style/MapTheme" />
-        <!--<activity android:name=".SelectorActivity" />-->
+        <activity android:name=".SelectorActivity" />
     </application>
 
 </manifest> <!-- Google Maps API Key: AIzaSyBCTXRIEPRU-nbOVqBdXghxNxtEU68dhXs -->
