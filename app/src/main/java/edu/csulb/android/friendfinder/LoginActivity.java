@@ -1,66 +1,114 @@
 package edu.csulb.android.friendfinder;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.auth.api.Auth;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseCredentials;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.Random;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends BaseActivity implements GoogleApiClient.OnConnectionFailedListener {
+    private static final int RC_SIGN_IN = 9001;
+    private static final String TAG = "Auth";
     private EditText usernameField;
-
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
-
-    private String mCustomToken;
-    private TokenBroadcastReceiver mTokenReceiver;
     private DatabaseReference mDatabase;
     private String username;
+
+    private GoogleApiClient mGoogleApiClient;
+    private FirebaseUser fbUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        username = readFromFile();
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
 
-        if(username.equals("")) {
-            usernameField = (EditText) findViewById(R.id.username_login);
-            username = usernameField.getText().toString();
-            writeToFile(username);
-            username = readFromFile();
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this /* FragmentActivity */, this /* OnConnectionFailedListener */)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .build();
+
+/*
+        FileInputStream serviceAccount =
+                null;
+        try {
+            serviceAccount = new FileInputStream("res/raw/firebase_admin.json");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            Log.d("JSON", "File not found");
         }
 
+        FirebaseOptions options = new FirebaseOptions.Builder().setCredential(FirebaseCredentials.fromCertificate(serviceAccount))
+                .setDatabaseUrl("https://friend-finder-6afd1.firebaseio.com")
+                .build();
+
+        FirebaseApp.initializeApp(options); */
+
         mDatabase = FirebaseDatabase.getInstance().getReference();
-        // Create token receiver
-        mTokenReceiver = new TokenBroadcastReceiver() {
-            @Override
-            public void onNewToken(String token) {
-                setCustomToken(token);
-                // add user to database
-                User user = new User(username);
-                mDatabase.child("users").child(token).setValue(user);
-            }
-        };
+        TextView textView = (TextView) findViewById(R.id.name_view);
+
+        // check if name is cached
+        username = readFromFile();
+
+        // if cached then show username and store in database
+        if(username != null){
+            textView.setText(username);
+            signIn();
+            //User user = new User(username);
+            //mDatabase.child("users").child(fbUser.getUid()).setValue(user);
+        }
+
+        // generate custom token
+        /*FirebaseAuth.getInstance().createCustomToken(username)
+                .addOnSuccessListener(new OnSuccessListener<String>() {
+                    @Override
+                    public void onSuccess(String customToken) {
+                        // Send token back to client
+                        mCustomToken = customToken;
+                    }
+                }); */
 
         // [START initialize_auth]
         mAuth = FirebaseAuth.getInstance();
@@ -70,74 +118,110 @@ public class LoginActivity extends AppCompatActivity {
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user = firebaseAuth.getCurrentUser();
-                if (user != null) {
+                fbUser = firebaseAuth.getCurrentUser();
+                if (fbUser != null) {
                     // User is signed in
+                    Log.d("SIGNIN","signed in as " + fbUser.getUid());
                 } else {
                     // User is signed out
+                    Log.d("SIGNIN","signed out");
                 }
             }
         };
     }
 
     @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
+        if (requestCode == RC_SIGN_IN) {
+            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+            if (result.isSuccess()) {
+                // Google Sign In was successful, authenticate with Firebase
+                GoogleSignInAccount account = result.getSignInAccount();
+                firebaseAuthWithGoogle(account);
+                Intent intent = new Intent(this,SelectorActivity.class);
+                startActivity(intent);
+            } else {
+                // Google Sign In failed, update UI appropriately
+
+            }
+        }
+    }
+
+    private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
+        Log.d(TAG, "firebaseAuthWithGoogle:" + acct.getId());
+        showProgressDialog();
+        AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
+        mAuth.signInWithCredential(credential)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        Log.d(TAG, "signInWithCredential:onComplete:" + task.isSuccessful());
+                        // If sign in fails, display a message to the user. If sign in succeeds
+                        // the auth state listener will be notified and logic to handle the
+                        // signed in user can be handled in the listener.
+                        if (!task.isSuccessful()) {
+                            Log.w(TAG, "signInWithCredential", task.getException());
+                            Toast.makeText(LoginActivity.this, "Authentication failed.",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                        hideProgressDialog();
+                    }
+                });
+    }
+
+    @Override
     public void onStart() {
         super.onStart();
         mAuth.addAuthStateListener(mAuthListener);
-        // [START_EXCLUDE]
-        registerReceiver(mTokenReceiver, TokenBroadcastReceiver.getFilter());
-        // [END_EXCLUDE]
     }
-    // [END on_start_add_listener]
 
-    // [START on_stop_remove_listener]
     @Override
     public void onStop() {
         super.onStop();
         if (mAuthListener != null) {
             mAuth.removeAuthStateListener(mAuthListener);
         }
-        // [START_EXCLUDE]
-        unregisterReceiver(mTokenReceiver);
-        // [END_EXCLUDE]
     }
-    // [END on_stop_remove_listener]
 
-    private void startSignIn() {
-        // Initiate sign in with custom token
-        // [START sign_in_custom]
-        mAuth.signInWithCustomToken(mCustomToken)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+    private void signIn() {
+        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
+        startActivityForResult(signInIntent, RC_SIGN_IN);
+    }
+
+    private void signOut() {
+        // Firebase sign out
+        mAuth.signOut();
+
+        // Google sign out
+        Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
+                new ResultCallback<Status>() {
                     @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (!task.isSuccessful()) {
-                            Toast.makeText(LoginActivity.this, "Authentication failed.",
-                                    Toast.LENGTH_SHORT).show();
-                        }
+                    public void onResult(@NonNull Status status) {
+                        // update UI to indicate sign out
                     }
                 });
-        // [END sign_in_custom]
-    }
-
-
-    private void setCustomToken(String token) {
-        mCustomToken = token;
-
-        // Enable/disable sign-in button and show the token
-        findViewById(R.id.login_button).setEnabled((mCustomToken != null));
     }
 
     public void onClick(View v) {
         int i = v.getId();
         if (i == R.id.login_button) {
-            startSignIn();
+            usernameField = (EditText) findViewById(R.id.username_login);
+            if(usernameField.getText().toString().length() != 0) {
+                username = usernameField.getText().toString();
+                writeToFile(username); // cache username
+            }
+
+            User user = new User(username);
+            mDatabase.child("users").child(fbUser.getUid()).setValue(user);
+            signIn();
         }
     }
 
     public String readFromFile() {
-
         String name = "";
-
         try {
             InputStream inputStream = openFileInput("data.txt");
 
@@ -167,5 +251,13 @@ public class LoginActivity extends AppCompatActivity {
         catch (IOException e) {
             Log.e("Exception", "File write failed: " + e.toString());
         }
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        // An unresolvable error has occurred and Google APIs (including Sign-In) will not
+        // be available.
+        Log.d(TAG, "onConnectionFailed:" + connectionResult);
+        Toast.makeText(this, "Google Play Services error.", Toast.LENGTH_SHORT).show();
     }
 }
