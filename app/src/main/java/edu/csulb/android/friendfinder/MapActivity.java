@@ -16,6 +16,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -32,6 +37,11 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
@@ -68,6 +78,35 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         getSupportActionBar().setDefaultDisplayHomeAsUpEnabled(true);
         drawerToggle.setDrawerIndicatorEnabled(false);
         drawerToggle.setHomeAsUpIndicator(R.drawable.icon_friends);
+
+        //==============================================================
+        // SAMPLE FOR FRIENDS LIST IN THE DRAWER LAYOUT
+        //==============================================================
+        // making friends list
+        List<Map<String, String>> friendsList = new ArrayList<>();
+        friendsList.add(addFriend("friend", "Alan"));
+        friendsList.add(addFriend("friend", "Kristian"));
+        friendsList.add(addFriend("friend", "Oscar"));
+        friendsList.add(addFriend("friend", "Yosef"));
+
+        // reference list view and set adapter
+        ListView friends_listview = (ListView) findViewById(R.id.friends_listview);
+        friends_listview.setAdapter(new SimpleAdapter(this, friendsList,
+                android.R.layout.simple_list_item_1,
+                new String[] {"friend"}, new int[] {android.R.id.text1}));
+        friends_listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                TextView rowView = (TextView) view;
+                Log.d("FRIENDS LIST LISTENER", "You clicked on " + rowView.getText());
+            }
+        });
+    }
+
+    private HashMap<String, String> addFriend(String key, String name) {
+        HashMap<String, String> friend = new HashMap<>();
+        friend.put(key, name);
+        return friend;
     }
 
     @Override
