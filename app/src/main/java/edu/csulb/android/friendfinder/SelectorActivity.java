@@ -5,10 +5,16 @@ import android.content.Intent;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class SelectorActivity extends AppCompatActivity {
     private String friendName = "";
@@ -17,6 +23,20 @@ public class SelectorActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_selector);
+
+        FirebaseDatabase.getInstance().getReference().child("users")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            User user = snapshot.getValue(User.class);
+                            Log.d("CHECK-NAMES",user.username);
+                        }
+                    }
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                    }
+                });
     }
 
     public void onClick(View view){
@@ -43,7 +63,8 @@ public class SelectorActivity extends AppCompatActivity {
                                             "Enter a Valid Name", Toast.LENGTH_SHORT).show();
                                     return;
                                 }
-                                // friend to friendlist of user in database
+                                // get friends as list
+                                // add new friend to list
                             }
                         });
 
