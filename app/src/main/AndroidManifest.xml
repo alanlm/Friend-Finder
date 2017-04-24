@@ -14,7 +14,7 @@
         android:roundIcon="@mipmap/friend_icon_round"
         android:supportsRtl="true"
         android:theme="@style/MapTheme" >
-        <activity android:name=".MapsDrawer" >
+        <activity android:name=".MapActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -26,11 +26,10 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBCTXRIEPRU-nbOVqBdXghxNxtEU68dhXs" />
 
-        <activity
-            android:name=".MapActivity"
-            android:theme="@style/MapTheme" />
+        <!--<activity-->
+            <!--android:name=".MapActivity"-->
+            <!--android:theme="@style/MapTheme" />-->
         <activity android:name=".SelectorActivity" />
-        <!--<activity android:name=".MapsDrawer" />-->
     </application>
 
 </manifest> <!-- Google Maps API Key: AIzaSyBCTXRIEPRU-nbOVqBdXghxNxtEU68dhXs -->

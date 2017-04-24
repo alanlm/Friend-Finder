@@ -9,7 +9,13 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -27,7 +33,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MapActivity extends MapsDrawer implements OnMapReadyCallback,
+public class MapActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
@@ -35,6 +41,8 @@ public class MapActivity extends MapsDrawer implements OnMapReadyCallback,
     private GoogleMap gMap;
     private GoogleApiClient googleApiClient;
     private Marker myLocationMarker;
+    private DrawerLayout drawerLayout;
+    private ActionBarDrawerToggle drawerToggle;
 
     private static final int MY_LOCATION_PERMISSION_REQUEST_CODE = 1;
 
@@ -49,6 +57,17 @@ public class MapActivity extends MapsDrawer implements OnMapReadyCallback,
 
         checkAppPermission(Manifest.permission.ACCESS_FINE_LOCATION,
                 MY_LOCATION_PERMISSION_REQUEST_CODE);
+
+        // reference to drawer layout and create drawer toggle
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, null,
+                R.string.drawer_open, R.string.drawer_close);
+
+        // custom hambuger icon
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDefaultDisplayHomeAsUpEnabled(true);
+        drawerToggle.setDrawerIndicatorEnabled(false);
+        drawerToggle.setHomeAsUpIndicator(R.drawable.icon_friends);
     }
 
     @Override
@@ -211,11 +230,31 @@ public class MapActivity extends MapsDrawer implements OnMapReadyCallback,
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.options, menu);
+        return true;
+    }
 
-        Log.d("ON STOP", "googleApiClient calling disconnect method");
-        googleApiClient.disconnect();
-        Log.d("ON STOP", "googleApiClient connection status: " + googleApiClient.isConnected());
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()) {
+            case android.R.id.home:
+                Log.d("OPTIONS ITEM SELECTED", "You clicked the custom hamburger icon");
+                if(drawerLayout.isDrawerOpen(GravityCompat.START))
+                    drawerLayout.closeDrawers();
+                else
+                    drawerLayout.openDrawer(GravityCompat.START);
+                break;
+            case R.id.options_map_settings:
+                Log.d("OPTIONS ITEM SELECTED", "You clicked Map Settings");
+                break;
+            case R.id.options_account_settings:
+                Log.d("OPTIONS ITEM SELECTED", "You clicked Account Settings");
+                break;
+            case R.id.options_logout:
+                Log.d("OPTIONS ITEM SELECTED", "You clicked Logout");
+                break;
+        }
+        return true;
     }
 }
