@@ -22,12 +22,9 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.auth.api.Auth;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseCredentials;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.database.DatabaseReference;
@@ -72,20 +69,12 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
 
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
-        TextView textView = (TextView) findViewById(R.id.name_view);
 
         signIn();
 
         // check if name is cached
         username = readFromFile();
 
-        // if cached then show username and store in database
-        if(username != null && username.length()!= 0){
-            Log.d("USER-CHECK",username);
-            textView.setText(username);
-            Intent intent = new Intent(LoginActivity.this, SelectorActivity.class);
-            startActivity(intent);
-        }
 
         // [START initialize_auth]
         mAuth = FirebaseAuth.getInstance();
@@ -99,6 +88,14 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                 if (fbUser != null) {
                     // User is signed in
                     Log.d("SIGNIN","signed in as " + fbUser.getUid());
+                    // if cached then show username and store in database
+                    if(username != null && username.length()!= 0){
+                        TextView textView = (TextView) findViewById(R.id.name_view);
+                        Log.d("USER-CHECK",username);
+                        textView.setText(username);
+                        Intent intent = new Intent(LoginActivity.this, SelectorActivity.class);
+                        startActivity(intent);
+                    }
 
                 } else {
                     // User is signed out
