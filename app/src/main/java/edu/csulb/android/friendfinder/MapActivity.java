@@ -19,8 +19,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -39,9 +37,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
@@ -83,30 +79,40 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         // SAMPLE FOR FRIENDS LIST IN THE DRAWER LAYOUT
         //==============================================================
         // making friends list and adding friends
-        List<Map<String, String>> friendsList = new ArrayList<>();
-        friendsList.add(addFriend("friend", "Alan"));
-        friendsList.add(addFriend("friend", "Kristian"));
-        friendsList.add(addFriend("friend", "Oscar"));
-        friendsList.add(addFriend("friend", "Yosef"));
+        final List<String> friendsList = new ArrayList<>();
+        friendsList.add("Alan");
+        friendsList.add("Kristian");
+        friendsList.add("Oscar");
+        friendsList.add("Yosef");
+        // TODO: Add friend's to database
 
         // reference list view and set adapter
         ListView friends_listview = (ListView) findViewById(R.id.friends_listview);
-        friends_listview.setAdapter(new SimpleAdapter(this, friendsList,
-                android.R.layout.simple_list_item_1,
-                new String[] {"friend"}, new int[] {android.R.id.text1}));
+        friends_listview.setAdapter(new FriendAdapter(this, R.layout.row, friendsList));
         friends_listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                TextView rowView = (TextView) view;
-                Log.d("FRIENDS LIST LISTENER", "You clicked on " + rowView.getText());
+                Log.d("FRIENDS LIST LISTENER", "You clicked on " + friendsList.get(position));
+
+                // getting friend's name from the friend's list
+                String friendsName = friendsList.get(position);
+
+                // TODO: Get friend's location from database
+                LatLng friendsLocation = new LatLng();
+
+                // creating friend's marker
+                MarkerOptions friendsMarker = new MarkerOptions();
+                friendsMarker.position(friendsLocation)
+                        .title(friendsName)
+                        .icon(BitmapDescriptorFactory
+                                .defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+
+                // adding friends marker and moving camera to friends position
+                gMap.addMarker(friendsMarker);
+                gMap.moveCamera(CameraUpdateFactory.newLatLng(friendsLocation));
+                gMap.animateCamera(CameraUpdateFactory.zoomTo(11));
             }
         });
-    }
-
-    private HashMap<String, String> addFriend(String key, String name) {
-        HashMap<String, String> friend = new HashMap<>();
-        friend.put(key, name);
-        return friend;
     }
 
     @Override
@@ -125,12 +131,12 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             buildGoogleApiClient();
             gMap.setMyLocationEnabled(true);
         }
-        Log.d("ON MAP READY", "googleApiClient status: " + googleApiClient.isConnected());
 
         // initializing Google Map UI settings
         UiSettings mapSettings = gMap.getUiSettings();
         mapSettings.setZoomControlsEnabled(true);
         mapSettings.setCompassEnabled(true);
+        mapSettings.setMapToolbarEnabled(false);
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -216,6 +222,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         // in case app needs to manipulate my last location,
         // otherwise not needed (for right now) -- uncomment to use
 //        Location myLastLocation = location;
+        // TODO: Send my location to database
 
         if(myLocationMarker != null)
             myLocationMarker.remove();
@@ -223,9 +230,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         // place my current location marker
         LatLng latlong = new LatLng(location.getLatitude(), location.getLongitude());
         MarkerOptions myMarkerOptions = new MarkerOptions();
-        myMarkerOptions.position(latlong);
-        myMarkerOptions.title("You are here!");
-        myMarkerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN));
+        myMarkerOptions.position(latlong)
+                .title("You are here!")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN));
         myLocationMarker = gMap.addMarker(myMarkerOptions);
 
         Log.d("ON LOCATION CHANGED", "My location: " + latlong.toString());
@@ -289,14 +296,31 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 break;
             case R.id.options_map_settings:
                 Log.d("OPTIONS ITEM SELECTED", "You clicked Map Settings");
+                // TODO: Make an activity to change the map settings
                 break;
             case R.id.options_account_settings:
                 Log.d("OPTIONS ITEM SELECTED", "You clicked Account Settings");
+                // TODO: Make an activity to change the account settings
                 break;
             case R.id.options_logout:
                 Log.d("OPTIONS ITEM SELECTED", "You clicked Logout");
+                // TODO: Sign out of the app
+                finish();
                 break;
         }
         return true;
+    }
+
+    public void friendsListFeatureListener(View v) {
+        switch(v.getId()) {
+            case R.id.friends_call:
+                Log.d("FRIENDS LIST FEATURE", "You clicked to call your friend");
+                // TODO: Make intent to call. Figure out which friend you tapped
+                break;
+            case R.id.friends_message:
+                Log.d("FRIENDS LIST FEATURE", "You clicked to message your friend");
+                // TODO: Make intent to message. Figure out which friend you tapped
+                break;
+        }
     }
 }
