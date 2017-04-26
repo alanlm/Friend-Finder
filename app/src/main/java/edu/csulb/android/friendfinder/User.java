@@ -9,6 +9,8 @@ import java.util.List;
 public class User {
     public String username;
     public List<String> friends;
+    public double latitude;
+    public double longitutde;
 
     public User(){
     }

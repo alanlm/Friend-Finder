@@ -5,6 +5,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -35,9 +36,12 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
@@ -49,6 +53,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private Marker myLocationMarker;
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
+    private String userID;
+    private List<String> friendsList = new ArrayList<>();
+    private Map<String,LatLng> friendsLocations = new HashMap<>();
 
     private static final int MY_LOCATION_PERMISSION_REQUEST_CODE = 1;
 
@@ -75,30 +82,34 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         drawerToggle.setDrawerIndicatorEnabled(false);
         drawerToggle.setHomeAsUpIndicator(R.drawable.icon_friends);
 
-        //==============================================================
-        // SAMPLE FOR FRIENDS LIST IN THE DRAWER LAYOUT
-        //==============================================================
-        // making friends list and adding friends
-        final List<String> friendsList = new ArrayList<>();
-        friendsList.add("Alan");
-        friendsList.add("Kristian");
-        friendsList.add("Oscar");
-        friendsList.add("Yosef");
-        // TODO: Add friend's to database
+        userID = getIntent().getStringExtra("uid");
 
-        // reference list view and set adapter
-        ListView friends_listview = (ListView) findViewById(R.id.friends_listview);
-        friends_listview.setAdapter(new FriendAdapter(this, R.layout.row, friendsList));
-        friends_listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        FirebaseHandler fbHandler = new FirebaseHandler();
+        friendsList = fbHandler.readFriends(userID);
+        friendsLocations = fbHandler.getFriendLocationMap(friendsList);
+
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Log.d("FRIENDS LIST LISTENER", "You clicked on " + friendsList.get(position));
+            public void run() {
+                for (Map.Entry<String,LatLng> entry : friendsLocations.entrySet()) {
+                    String key = entry.getKey();
+                    String value = entry.getValue().longitude + " " + entry.getValue().latitude;
+                    Log.d("MAP-LOCATION", "Friend: " +key + " Location: "+ value);
+                }
+                // reference list view and set adapter
+                ListView friends_listview = (ListView) findViewById(R.id.friends_listview);
+                friends_listview.setAdapter(new FriendAdapter(getApplicationContext(), R.layout.row, friendsList));
+                friends_listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        Log.d("FRIENDS LIST LISTENER", "You clicked on " + friendsList.get(position));
 
-                // getting friend's name from the friend's list
-                String friendsName = friendsList.get(position);
+                        // getting friend's name from the friend's list
+                        String friendsName = friendsList.get(position);
 
-                // TODO: Get friend's location from database
-                LatLng friendsLocation = new LatLng();
+                        // TODO: Get friend's location from database
+                /*LatLng friendsLocation = new LatLng();
 
                 // creating friend's marker
                 MarkerOptions friendsMarker = new MarkerOptions();
@@ -109,10 +120,14 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
                 // adding friends marker and moving camera to friends position
                 gMap.addMarker(friendsMarker);
-                gMap.moveCamera(CameraUpdateFactory.newLatLng(friendsLocation));
-                gMap.animateCamera(CameraUpdateFactory.zoomTo(11));
+                gMap.moveCamera(CameraUpdateFactory.newLatLng(friendsLocation)); */
+                        gMap.animateCamera(CameraUpdateFactory.zoomTo(11));
+                    }
+                });
             }
-        });
+        }, 500);
+
+
     }
 
     @Override
@@ -244,6 +259,12 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         // stop location updates
         if(googleApiClient != null)
             LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
+
+        // update location to firebase in intervals
+        FirebaseDatabase.getInstance().getReference()
+                .child("users").child(userID).child("latitude").setValue(latlong.latitude);
+        FirebaseDatabase.getInstance().getReference()
+                .child("users").child(userID).child("longitude").setValue(latlong.longitude);
     }
 
     // Will be called whenever device is connected and disconnected

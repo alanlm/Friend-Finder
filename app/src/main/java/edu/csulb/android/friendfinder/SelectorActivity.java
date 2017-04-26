@@ -22,7 +22,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SelectorActivity extends AppCompatActivity {
+public class SelectorActivity extends BaseActivity {
     private String friendName = "";
     private String userID;
     private List<String> friends;
@@ -63,6 +63,7 @@ public class SelectorActivity extends AppCompatActivity {
 
                                 // get friends as list
                                 FirebaseHandler fbHandler = new FirebaseHandler();
+                                showProgressDialog();
                                 friends = fbHandler.readFriends(userID);
                                 final Handler handler = new Handler();
                                 handler.postDelayed(new Runnable() {
@@ -70,21 +71,16 @@ public class SelectorActivity extends AppCompatActivity {
                                     public void run() {
                                         // add new friend to list
                                         if(!friends.contains(friendName)){
-                                            for(String s: friends){
-                                                Log.d("FRIENDS-BEFORE",s);
-                                            }
                                             friends.add(friendName);
-                                            for(String s: friends){
-                                                Log.d("FRIENDS-AFTER",s);
-                                            }
+                                            FirebaseDatabase.getInstance().getReference()
+                                                    .child("users").child(userID).child("friends").setValue(friends);
                                             Toast.makeText(getApplicationContext(),friendName + " Was Added",Toast.LENGTH_SHORT).show();
                                         }
                                         else{
                                             Toast.makeText(getApplicationContext(),friendName +
                                                     " Already Exists or Could Not Be Added",Toast.LENGTH_SHORT).show();
                                         }
-                                        FirebaseDatabase.getInstance().getReference()
-                                                .child("users").child(userID).child("friends").setValue(friends);
+                                        hideProgressDialog();
                                     }
                                 },500);
                             }
@@ -102,6 +98,7 @@ public class SelectorActivity extends AppCompatActivity {
 
             case R.id.find_friend_button:
                 Intent intent = new Intent(SelectorActivity.this, MapActivity.class);
+                intent.putExtra("uid", userID);
                 startActivity(intent);
                 break;
         }
