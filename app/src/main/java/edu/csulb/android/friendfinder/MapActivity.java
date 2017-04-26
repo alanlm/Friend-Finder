@@ -109,7 +109,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                         String friendsName = friendsList.get(position);
 
                         // TODO: Get friend's location from database
-                /*LatLng friendsLocation = new LatLng();
+                LatLng friendsLocation = friendsLocations.get(friendsName);
 
                 // creating friend's marker
                 MarkerOptions friendsMarker = new MarkerOptions();
@@ -120,8 +120,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
                 // adding friends marker and moving camera to friends position
                 gMap.addMarker(friendsMarker);
-                gMap.moveCamera(CameraUpdateFactory.newLatLng(friendsLocation)); */
+                gMap.moveCamera(CameraUpdateFactory.newLatLng(friendsLocation));
                         gMap.animateCamera(CameraUpdateFactory.zoomTo(11));
+                        drawerLayout.closeDrawers();
                     }
                 });
             }
