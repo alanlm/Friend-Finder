@@ -75,7 +75,6 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
         // check if name is cached
         username = readFromFile();
 
-
         // [START initialize_auth]
         mAuth = FirebaseAuth.getInstance();
         // [END initialize_auth]
