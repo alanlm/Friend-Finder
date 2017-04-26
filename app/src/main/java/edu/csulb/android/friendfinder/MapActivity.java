@@ -9,7 +9,18 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -27,7 +38,12 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MapActivity extends MapsDrawer implements OnMapReadyCallback,
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class MapActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
@@ -35,6 +51,8 @@ public class MapActivity extends MapsDrawer implements OnMapReadyCallback,
     private GoogleMap gMap;
     private GoogleApiClient googleApiClient;
     private Marker myLocationMarker;
+    private DrawerLayout drawerLayout;
+    private ActionBarDrawerToggle drawerToggle;
 
     private static final int MY_LOCATION_PERMISSION_REQUEST_CODE = 1;
 
@@ -49,6 +67,46 @@ public class MapActivity extends MapsDrawer implements OnMapReadyCallback,
 
         checkAppPermission(Manifest.permission.ACCESS_FINE_LOCATION,
                 MY_LOCATION_PERMISSION_REQUEST_CODE);
+
+        // reference to drawer layout and create drawer toggle
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, null,
+                R.string.drawer_open, R.string.drawer_close);
+
+        // custom hambuger icon
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDefaultDisplayHomeAsUpEnabled(true);
+        drawerToggle.setDrawerIndicatorEnabled(false);
+        drawerToggle.setHomeAsUpIndicator(R.drawable.icon_friends);
+
+        //==============================================================
+        // SAMPLE FOR FRIENDS LIST IN THE DRAWER LAYOUT
+        //==============================================================
+        // making friends list and adding friends
+        List<Map<String, String>> friendsList = new ArrayList<>();
+        friendsList.add(addFriend("friend", "Alan"));
+        friendsList.add(addFriend("friend", "Kristian"));
+        friendsList.add(addFriend("friend", "Oscar"));
+        friendsList.add(addFriend("friend", "Yosef"));
+
+        // reference list view and set adapter
+        ListView friends_listview = (ListView) findViewById(R.id.friends_listview);
+        friends_listview.setAdapter(new SimpleAdapter(this, friendsList,
+                android.R.layout.simple_list_item_1,
+                new String[] {"friend"}, new int[] {android.R.id.text1}));
+        friends_listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                TextView rowView = (TextView) view;
+                Log.d("FRIENDS LIST LISTENER", "You clicked on " + rowView.getText());
+            }
+        });
+    }
+
+    private HashMap<String, String> addFriend(String key, String name) {
+        HashMap<String, String> friend = new HashMap<>();
+        friend.put(key, name);
+        return friend;
     }
 
     @Override
@@ -211,11 +269,34 @@ public class MapActivity extends MapsDrawer implements OnMapReadyCallback,
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.options, menu);
+        return true;
+    }
 
-        Log.d("ON STOP", "googleApiClient calling disconnect method");
-        googleApiClient.disconnect();
-        Log.d("ON STOP", "googleApiClient connection status: " + googleApiClient.isConnected());
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()) {
+            case android.R.id.home:
+                Log.d("OPTIONS ITEM SELECTED", "You clicked the custom hamburger icon");
+                if(drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    drawerLayout.closeDrawers();
+                    drawerToggle.setHomeAsUpIndicator(R.drawable.icon_friends);
+                } else {
+                    drawerLayout.openDrawer(GravityCompat.START);
+                    drawerToggle.setHomeAsUpIndicator(R.drawable.icon_map);
+                }
+                break;
+            case R.id.options_map_settings:
+                Log.d("OPTIONS ITEM SELECTED", "You clicked Map Settings");
+                break;
+            case R.id.options_account_settings:
+                Log.d("OPTIONS ITEM SELECTED", "You clicked Account Settings");
+                break;
+            case R.id.options_logout:
+                Log.d("OPTIONS ITEM SELECTED", "You clicked Logout");
+                break;
+        }
+        return true;
     }
 }
