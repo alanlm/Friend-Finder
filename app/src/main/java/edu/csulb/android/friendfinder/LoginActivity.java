@@ -22,12 +22,9 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.auth.api.Auth;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseCredentials;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.database.DatabaseReference;
@@ -70,45 +67,14 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build();
 
-/*
-        FileInputStream serviceAccount =
-                null;
-        try {
-            serviceAccount = new FileInputStream("res/raw/firebase_admin.json");
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            Log.d("JSON", "File not found");
-        }
-
-        FirebaseOptions options = new FirebaseOptions.Builder().setCredential(FirebaseCredentials.fromCertificate(serviceAccount))
-                .setDatabaseUrl("https://friend-finder-6afd1.firebaseio.com")
-                .build();
-
-        FirebaseApp.initializeApp(options); */
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
-        TextView textView = (TextView) findViewById(R.id.name_view);
+
+        signIn();
 
         // check if name is cached
         username = readFromFile();
 
-        // if cached then show username and store in database
-        if(username != null){
-            textView.setText(username);
-            signIn();
-            //User user = new User(username);
-            //mDatabase.child("users").child(fbUser.getUid()).setValue(user);
-        }
-
-        // generate custom token
-        /*FirebaseAuth.getInstance().createCustomToken(username)
-                .addOnSuccessListener(new OnSuccessListener<String>() {
-                    @Override
-                    public void onSuccess(String customToken) {
-                        // Send token back to client
-                        mCustomToken = customToken;
-                    }
-                }); */
 
         // [START initialize_auth]
         mAuth = FirebaseAuth.getInstance();
@@ -122,6 +88,16 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                 if (fbUser != null) {
                     // User is signed in
                     Log.d("SIGNIN","signed in as " + fbUser.getUid());
+                    // if cached then show username and store in database
+                    if(username != null && username.length()!= 0){
+                        TextView textView = (TextView) findViewById(R.id.name_view);
+                        Log.d("USER-CHECK",username);
+                        textView.setText(username);
+                        Intent intent = new Intent(LoginActivity.this, SelectorActivity.class);
+                        intent.putExtra("uid",fbUser.getUid());
+                        startActivity(intent);
+                    }
+
                 } else {
                     // User is signed out
                     Log.d("SIGNIN","signed out");
@@ -141,11 +117,9 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                 // Google Sign In was successful, authenticate with Firebase
                 GoogleSignInAccount account = result.getSignInAccount();
                 firebaseAuthWithGoogle(account);
-                Intent intent = new Intent(this,SelectorActivity.class);
-                startActivity(intent);
-            } else {
+            }
+            else {
                 // Google Sign In failed, update UI appropriately
-
             }
         }
     }
@@ -213,11 +187,20 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                 username = usernameField.getText().toString();
                 writeToFile(username); // cache username
             }
-
             User user = new User(username);
             mDatabase.child("users").child(fbUser.getUid()).setValue(user);
-            signIn();
+            Intent intent = new Intent(this,SelectorActivity.class);
+            intent.putExtra("uid",fbUser.getUid());
+            startActivity(intent);
         }
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        // An unresolvable error has occurred and Google APIs (including Sign-In) will not
+        // be available.
+        Log.d(TAG, "onConnectionFailed:" + connectionResult);
+        Toast.makeText(this, "Google Play Services error.", Toast.LENGTH_SHORT).show();
     }
 
     public String readFromFile() {
@@ -251,13 +234,5 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
         catch (IOException e) {
             Log.e("Exception", "File write failed: " + e.toString());
         }
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        // An unresolvable error has occurred and Google APIs (including Sign-In) will not
-        // be available.
-        Log.d(TAG, "onConnectionFailed:" + connectionResult);
-        Toast.makeText(this, "Google Play Services error.", Toast.LENGTH_SHORT).show();
     }
 }

@@ -1,22 +1,39 @@
 package edu.csulb.android.friendfinder;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Handler;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class SelectorActivity extends AppCompatActivity {
     private String friendName = "";
+    private String userID;
+    private List<String> friends;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_selector);
+
+        userID = getIntent().getStringExtra("uid");
+
     }
 
     public void onClick(View view){
@@ -43,7 +60,33 @@ public class SelectorActivity extends AppCompatActivity {
                                             "Enter a Valid Name", Toast.LENGTH_SHORT).show();
                                     return;
                                 }
-                                // friend to friendlist of user in database
+
+                                // get friends as list
+                                FirebaseHandler fbHandler = new FirebaseHandler();
+                                friends = fbHandler.readFriends(userID);
+                                final Handler handler = new Handler();
+                                handler.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        // add new friend to list
+                                        if(!friends.contains(friendName)){
+                                            for(String s: friends){
+                                                Log.d("FRIENDS-BEFORE",s);
+                                            }
+                                            friends.add(friendName);
+                                            for(String s: friends){
+                                                Log.d("FRIENDS-AFTER",s);
+                                            }
+                                            Toast.makeText(getApplicationContext(),friendName + " Was Added",Toast.LENGTH_SHORT).show();
+                                        }
+                                        else{
+                                            Toast.makeText(getApplicationContext(),friendName +
+                                                    " Already Exists or Could Not Be Added",Toast.LENGTH_SHORT).show();
+                                        }
+                                        FirebaseDatabase.getInstance().getReference()
+                                                .child("users").child(userID).child("friends").setValue(friends);
+                                    }
+                                },500);
                             }
                         });
 
