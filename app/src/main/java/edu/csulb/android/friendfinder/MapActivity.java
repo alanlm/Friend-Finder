@@ -37,6 +37,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -53,6 +54,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private Marker myLocationMarker;
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
+    private String userID;
 
     private static final int MY_LOCATION_PERMISSION_REQUEST_CODE = 1;
 
@@ -79,15 +81,19 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         drawerToggle.setDrawerIndicatorEnabled(false);
         drawerToggle.setHomeAsUpIndicator(R.drawable.icon_friends);
 
+        userID = getIntent().getStringExtra("uid");
+        List<String> friends = new ArrayList<>();
+        FirebaseHandler handler = new FirebaseHandler();
+        friends.addAll(handler.readFriends(userID));
+
         //==============================================================
         // SAMPLE FOR FRIENDS LIST IN THE DRAWER LAYOUT
         //==============================================================
         // making friends list and adding friends
         List<Map<String, String>> friendsList = new ArrayList<>();
-        friendsList.add(addFriend("friend", "Alan"));
-        friendsList.add(addFriend("friend", "Kristian"));
-        friendsList.add(addFriend("friend", "Oscar"));
-        friendsList.add(addFriend("friend", "Yosef"));
+        for(String friend: friends) {
+            friendsList.add(addFriend("friend", friend));
+        }
 
         // reference list view and set adapter
         ListView friends_listview = (ListView) findViewById(R.id.friends_listview);
@@ -237,6 +243,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         // stop location updates
         if(googleApiClient != null)
             LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
+
+        // update location to firebase in intervals
+        /*FirebaseDatabase.getInstance().getReference()
+                .child("users").child(userID).child("friends").setValue(friends);*/
     }
 
     // Will be called whenever device is connected and disconnected

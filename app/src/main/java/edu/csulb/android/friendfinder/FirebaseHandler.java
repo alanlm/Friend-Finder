@@ -40,7 +40,6 @@ public class FirebaseHandler {
                 .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-                        //GenericTypeIndicator<List<String>> t = new GenericTypeIndicator<List<String>>() {};
                         for(DataSnapshot snap: dataSnapshot.getChildren()) {
                             friendsList.add(String.valueOf(snap.getValue()));
                             Log.d("FRIENDS-READ", String.valueOf(snap.getValue()));
