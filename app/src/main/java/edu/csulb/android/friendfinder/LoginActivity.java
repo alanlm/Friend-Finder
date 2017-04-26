@@ -181,6 +181,7 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                 });
     }
 
+    // Where the magic happens
     public void onClick(View v) {
         int i = v.getId();
         if (i == R.id.login_button) {

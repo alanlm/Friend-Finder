@@ -11,19 +11,31 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 public class SelectorActivity extends AppCompatActivity {
     private String friendName = "";
 
+    private DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
+    private FirebaseUser fbUser;
+    private FirebaseAuth mAuth;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_selector);
 
+        // set up our firebase user for db access
+        mAuth = FirebaseAuth.getInstance();
+        fbUser = mAuth.getCurrentUser();
+
+        // check against data
         FirebaseDatabase.getInstance().getReference().child("users")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -63,8 +75,21 @@ public class SelectorActivity extends AppCompatActivity {
                                             "Enter a Valid Name", Toast.LENGTH_SHORT).show();
                                     return;
                                 }
-                                // get friends as list
-                                // add new friend to list
+
+                                // fetch user from db
+                                User user = new User(mDatabase.child("users").child(fbUser.getUid()).child("username").getKey());
+                                // no more than 5 friends for now
+                                if (user.friendsList.size() < 5) {
+                                    // get friends as list
+                                    // add new friend to list
+                                    user.addFriend(friendName);
+
+                                    //System.out.println(user.friendsList.get(0));
+                                    //System.out.println(mDatabase.child("users").child(fbUser.getUid()).child("username").getKey());
+
+                                    // write to db
+                                    mDatabase.child("users").child(fbUser.getUid()).child("username").setValue("Friend", friendName);
+                                }
                             }
                         });
 
@@ -76,6 +101,7 @@ public class SelectorActivity extends AppCompatActivity {
                         });
 
                 alertDialog.show();
+
             break;
 
             case R.id.find_friend_button:
