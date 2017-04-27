@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
@@ -24,8 +25,11 @@ import java.util.List;
 
 public class SelectorActivity extends BaseActivity {
     private String friendName = "";
+    private String userName;
     private String userID;
     private List<String> friends;
+
+    private TextView mUserName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +37,21 @@ public class SelectorActivity extends BaseActivity {
         setContentView(R.layout.activity_selector);
 
         userID = getIntent().getStringExtra("uid");
+        userName(userID);
+        // Get username from database
+//        FirebaseHandler fbHandler = new FirebaseHandler();
+//        userName = fbHandler.getUsername(userID);
+//        //
+//        mUserName = (TextView) findViewById(R.id.selector_username);
+//        mUserName.setText(userName);
 
+    }
+    public void userName(String userID) {
+        FirebaseHandler fbHandler = new FirebaseHandler();
+        userName = fbHandler.getUsername(userID);
+        //
+        mUserName = (TextView) findViewById(R.id.selector_username);
+        mUserName.setText(userName);
     }
 
     public void onClick(View view){

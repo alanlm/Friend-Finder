@@ -6,12 +6,24 @@
     android:layout_height="match_parent"
     tools:context="edu.csulb.android.friendfinder.SelectorActivity">
 
+    <TextView
+        android:id="@+id/selector_username"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="58dp"
+        android:ems="10"
+        android:inputType="text"
+        android:textAlignment="center"
+        android:textSize="30sp" />
+
     <Button
         android:id="@+id/friend_add_button"
         style="@style/Widget.AppCompat.Button.Colored"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="155dp"
+        android:layout_marginTop="244dp"
         android:text="Add a Friend"
         android:textSize="30sp"
         android:onClick="onClick"
@@ -23,10 +35,10 @@
         style="@style/Widget.AppCompat.Button.Colored"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/friend_add_button"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="77dp"
         android:text="Find Friends"
         android:textSize="30sp"
-        android:onClick="onClick"/>
+        android:onClick="onClick"
+        android:layout_below="@+id/friend_add_button"
+        android:layout_alignParentStart="true" />
 </RelativeLayout>
