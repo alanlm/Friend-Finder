@@ -68,7 +68,7 @@ public class FirebaseHandler {
                                 User user = snapshot.getValue(User.class);
                                 if (friendName.equals(user.username)){
                                     Log.d("FOUND","Found friend: "+friendName);
-                                    friendsLocation.put(friendName,new LatLng(user.latitude,user.longitutde));
+                                    friendsLocation.put(friendName,new LatLng(user.latitude,user.longitude));
                                 }
                             }
                         }

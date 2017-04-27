@@ -109,19 +109,21 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                         String friendsName = friendsList.get(position);
 
                         // TODO: Get friend's location from database
-                /*LatLng friendsLocation = new LatLng();
+                        LatLng friendsLocation = friendsLocations.get(friendsName);
 
-                // creating friend's marker
-                MarkerOptions friendsMarker = new MarkerOptions();
-                friendsMarker.position(friendsLocation)
-                        .title(friendsName)
-                        .icon(BitmapDescriptorFactory
-                                .defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                        // creating friend's marker
+                        MarkerOptions friendsMarker = new MarkerOptions();
+                        friendsMarker.position(friendsLocation)
+                                .title(friendsName)
+                                .icon(BitmapDescriptorFactory
+                                        .defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
 
-                // adding friends marker and moving camera to friends position
-                gMap.addMarker(friendsMarker);
-                gMap.moveCamera(CameraUpdateFactory.newLatLng(friendsLocation)); */
+                        // adding friends marker and moving camera to friends position
+                        gMap.addMarker(friendsMarker);
+                        gMap.moveCamera(CameraUpdateFactory.newLatLng(friendsLocation));
                         gMap.animateCamera(CameraUpdateFactory.zoomTo(11));
+                        drawerLayout.closeDrawers();
+                        drawerToggle.setHomeAsUpIndicator(R.drawable.icon_friends);
                     }
                 });
             }
