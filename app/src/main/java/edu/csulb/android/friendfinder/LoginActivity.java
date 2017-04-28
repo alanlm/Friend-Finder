@@ -27,8 +27,12 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -73,7 +77,8 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
         signIn();
 
         // check if name is cached
-        username = readFromFile();
+        // ** DEPRECATED **
+        // username = readFromFile();
 
         // [START initialize_auth]
         mAuth = FirebaseAuth.getInstance();
@@ -87,19 +92,23 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                 if (fbUser != null) {
                     // User is signed in
                     Log.d("SIGNIN","signed in as " + fbUser.getUid());
-                    // if cached then show username and store in database
-                    if(username != null && username.length()!= 0){
-                        TextView textView = (TextView) findViewById(R.id.name_view);
-                        Log.d("USER-CHECK",username);
-                        textView.setText(username);
-                        Intent intent = new Intent(LoginActivity.this, SelectorActivity.class);
-                        intent.putExtra("uid",fbUser.getUid());
-                        startActivity(intent);
-                    }
 
-                } else {
-                    // User is signed out
-                    Log.d("SIGNIN","signed out");
+                    // if cached then show username and store in database
+//                    username = mDatabase.child("users").child(fbUser.getUid()).child("username").getKey();
+
+//                     ** DEPRECATED **
+//                    if(username != null && username.length()!= 0){
+//                        TextView textView = (TextView) findViewById(R.id.name_view);
+//                        Log.d("USER-CHECK",username);
+//                        textView.setText(username);
+//                        Intent intent = new Intent(LoginActivity.this, SelectorActivity.class);
+//                        intent.putExtra("uid",fbUser.getUid());
+//                        startActivity(intent);
+//                    }
+//
+//                } else {
+//                    // User is signed out
+//                    Log.d("SIGNIN","signed out");
                 }
             }
         };
@@ -182,15 +191,51 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
         int i = v.getId();
         if (i == R.id.login_button) {
             usernameField = (EditText) findViewById(R.id.username_login);
-            if(usernameField.getText().toString().length() != 0) {
-                username = usernameField.getText().toString();
-                writeToFile(username); // cache username
+
+            // for first time users
+            //User user = new User(username);
+            //mDatabase.child("users").child(fbUser.getUid()).setValue(user);
+
+            mDatabase.child("users").child(fbUser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    User user = dataSnapshot.getValue(User.class);
+                    username = user.username;
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+
+
+            // Debugging
+            Log.d("SIGNIN", "Username is: " + username);
+            Log.d("SIGNIN", "UsernameField is: " + usernameField.getText().toString());
+
+            // check if username has been entered and matches whats on the database
+            // usernameField.getText().toString().length() != 0
+            if(usernameField.getText().toString() == username) {
+                //username = usernameField.getText().toString();
+                //writeToFile(username); // cache username
+
+                TextView textView = (TextView) findViewById(R.id.name_view);
+                Log.d("USER-CHECK",username);
+                textView.setText(username);
+                Intent intent = new Intent(LoginActivity.this, SelectorActivity.class);
+                intent.putExtra("uid",fbUser.getUid());
+                startActivity(intent);
+            } else {
+                //User is signed out
+              Log.d("SIGNIN","signed out");
             }
-            User user = new User(username);
-            mDatabase.child("users").child(fbUser.getUid()).setValue(user);
-            Intent intent = new Intent(this,SelectorActivity.class);
-            intent.putExtra("uid",fbUser.getUid());
-            startActivity(intent);
+
+//            User user = new User(username);
+//            mDatabase.child("users").child(fbUser.getUid()).setValue(user);
+//            Intent intent = new Intent(this,SelectorActivity.class);
+//            intent.putExtra("uid",fbUser.getUid());
+//            startActivity(intent);
         }
     }
 
