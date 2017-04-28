@@ -317,14 +317,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     drawerToggle.setHomeAsUpIndicator(R.drawable.icon_map);
                 }
                 break;
-            case R.id.options_map_settings:
-                Log.d("OPTIONS ITEM SELECTED", "You clicked Map Settings");
-                // TODO: Make an activity to change the map settings
-                break;
-            case R.id.options_account_settings:
-                Log.d("OPTIONS ITEM SELECTED", "You clicked Account Settings");
-                // TODO: Make an activity to change the account settings
-                break;
             case R.id.options_logout:
                 Log.d("OPTIONS ITEM SELECTED", "You clicked Logout");
                 // TODO: Sign out of the app
@@ -349,5 +341,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     public void addFriendButtonListener(View view) {
         // TODO: Handle listener for "Add Friend" button in the friend's list
+        Log.d("FRIENDS LIST FEATURE", "You clicked on Add a Friend button");
     }
 }
