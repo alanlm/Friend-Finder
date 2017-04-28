@@ -346,4 +346,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 break;
         }
     }
+
+    public void addFriendButtonListener(View view) {
+        // TODO: Handle listener for "Add Friend" button in the friend's list
+    }
 }
