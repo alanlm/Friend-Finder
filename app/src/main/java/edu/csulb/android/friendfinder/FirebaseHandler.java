@@ -21,24 +21,25 @@ import java.util.Map;
 public class FirebaseHandler {
     List<String> friendsList = new ArrayList();
     Map<String,LatLng> friendsLocation = new HashMap<>();
-    private String uName;
+    String uName;
 
 
 
     public String getUsername(String uid) {
         Log.d("Firebase initial", uid);
         FirebaseDatabase.getInstance().getReference().child("users").child(uid).child("username")
-                .addValueEventListener(new ValueEventListener() {
+                .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         Log.d("Setting userName", String.valueOf(dataSnapshot.getValue()));
                         uName = String.valueOf(dataSnapshot.getValue());
                         System.out.println(uName);
-                        Log.d("userName", String.valueOf(dataSnapshot.getValue()));
+                        Log.d("userName", uName);
                     }
+
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
-                        Log.d("DATA-ERROR", "error: " + databaseError.getCode() );
+
                     }
                 });
         Log.d("Sending username", "username:" + uName);
