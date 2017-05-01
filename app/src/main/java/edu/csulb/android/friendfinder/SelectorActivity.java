@@ -1,6 +1,5 @@
 package edu.csulb.android.friendfinder;
 
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Handler;
@@ -13,21 +12,17 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class SelectorActivity extends BaseActivity {
     private String friendName = "";
     private String userName;
     private String userID;
+    private String username;
     private List<String> friends;
+    private EditText input;
 
     private TextView mUserName;
 
@@ -37,14 +32,11 @@ public class SelectorActivity extends BaseActivity {
         setContentView(R.layout.activity_selector);
 
         userID = getIntent().getStringExtra("uid");
-        userName(userID);
-        // Get username from database
-//        FirebaseHandler fbHandler = new FirebaseHandler();
-//        userName = fbHandler.getUsername(userID);
-//        //
-//        mUserName = (TextView) findViewById(R.id.selector_username);
-//        mUserName.setText(userName);
+        username = getIntent().getStringExtra("username");
+        input = new EditText(SelectorActivity.this);
 
+        TextView textView = (TextView) findViewById(R.id.text_view);
+        textView.setText("Signed in as " + username);
     }
     public void userName(String userID) {
         FirebaseHandler fbHandler = new FirebaseHandler();
@@ -60,8 +52,6 @@ public class SelectorActivity extends BaseActivity {
                 AlertDialog.Builder alertDialog = new AlertDialog.Builder(SelectorActivity.this);
                 alertDialog.setTitle("Add Friend");
                 alertDialog.setMessage("Enter Username");
-
-                final EditText input = new EditText(SelectorActivity.this);
                 LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         LinearLayout.LayoutParams.MATCH_PARENT);
@@ -72,35 +62,7 @@ public class SelectorActivity extends BaseActivity {
                 alertDialog.setPositiveButton("ADD",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
-                                friendName = input.getText().toString();
-                                if (friendName.equals("")) {
-                                    Toast.makeText(getApplicationContext(),
-                                            "Enter a Valid Name", Toast.LENGTH_SHORT).show();
-                                    return;
-                                }
-
-                                // get friends as list
-                                FirebaseHandler fbHandler = new FirebaseHandler();
-                                showProgressDialog();
-                                friends = fbHandler.readFriends(userID);
-                                final Handler handler = new Handler();
-                                handler.postDelayed(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        // add new friend to list
-                                        if(!friends.contains(friendName)){
-                                            friends.add(friendName);
-                                            FirebaseDatabase.getInstance().getReference()
-                                                    .child("users").child(userID).child("friends").setValue(friends);
-                                            Toast.makeText(getApplicationContext(),friendName + " Was Added",Toast.LENGTH_SHORT).show();
-                                        }
-                                        else{
-                                            Toast.makeText(getApplicationContext(),friendName +
-                                                    " Already Exists or Could Not Be Added",Toast.LENGTH_SHORT).show();
-                                        }
-                                        hideProgressDialog();
-                                    }
-                                },500);
+                                addFriend();
                             }
                         });
 
@@ -120,5 +82,50 @@ public class SelectorActivity extends BaseActivity {
                 startActivity(intent);
                 break;
         }
+    }
+
+    public void addFriend(){
+        friendName = input.getText().toString();
+        if (friendName.equals("")) {
+            Toast.makeText(getApplicationContext(),
+                    "Enter a Valid Name", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // get friends as list
+        final FirebaseHandler fbHandler = new FirebaseHandler();
+        showProgressDialog();
+        friends = fbHandler.readFriends(userID);
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                // add new friend to list
+                if(!friends.contains(friendName)){
+                    friends.add(friendName);
+                    FirebaseDatabase.getInstance().getReference()
+                            .child("users").child(userID).child("friends").setValue(friends);
+                    Toast.makeText(getApplicationContext(),friendName + " Was Added",Toast.LENGTH_SHORT).show();
+
+                    // add yourself to friend's friendlist
+                    final Map friendInfo =fbHandler.getFriendsFriendList(username,friendName);
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            Map.Entry < String, List < String >> entry =
+                                    (Map.Entry<String, List<String>>) friendInfo.entrySet().iterator().next();
+                            FirebaseDatabase.getInstance().getReference()
+                                    .child("users").child(entry.getKey()).child("friends").setValue(entry.getValue());
+                        }
+                    },500);
+
+                }
+                else{
+                    Toast.makeText(getApplicationContext(),friendName +
+                            " Already Exists or Could Not Be Added",Toast.LENGTH_SHORT).show();
+                }
+                hideProgressDialog();
+            }
+        },500);
     }
 }
