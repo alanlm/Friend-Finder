@@ -20,7 +20,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,8 +29,6 @@ public class SelectorActivity extends BaseActivity {
     private String userID;
     private List<String> friends;
 
-
-    private DatabaseReference mRef;
     private TextView mUserName;
 
     @Override
@@ -40,21 +37,21 @@ public class SelectorActivity extends BaseActivity {
         setContentView(R.layout.activity_selector);
 
         userID = getIntent().getStringExtra("uid");
+        userName(userID);
+        // Get username from database
+//        FirebaseHandler fbHandler = new FirebaseHandler();
+//        userName = fbHandler.getUsername(userID);
+//        //
+//        mUserName = (TextView) findViewById(R.id.selector_username);
+//        mUserName.setText(userName);
+
+    }
+    public void userName(String userID) {
+        FirebaseHandler fbHandler = new FirebaseHandler();
+        userName = fbHandler.getUsername(userID);
+        //
         mUserName = (TextView) findViewById(R.id.selector_username);
-        mRef = FirebaseDatabase.getInstance().getReference();
-        mRef.child("users").child(userID).child("username")
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        String value = dataSnapshot.getValue(String.class);
-                        mUserName.setText(value);
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
+        mUserName.setText(userName);
     }
 
     public void onClick(View view){
