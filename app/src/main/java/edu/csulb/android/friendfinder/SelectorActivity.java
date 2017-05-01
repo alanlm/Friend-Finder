@@ -18,10 +18,13 @@ import java.util.Map;
 
 public class SelectorActivity extends BaseActivity {
     private String friendName = "";
+    private String userName;
     private String userID;
     private String username;
     private List<String> friends;
     private EditText input;
+
+    private TextView mUserName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +37,13 @@ public class SelectorActivity extends BaseActivity {
 
         TextView textView = (TextView) findViewById(R.id.text_view);
         textView.setText("Signed in as " + username);
+    }
+    public void userName(String userID) {
+        FirebaseHandler fbHandler = new FirebaseHandler();
+        userName = fbHandler.getUsername(userID);
+        //
+        mUserName = (TextView) findViewById(R.id.selector_username);
+        mUserName.setText(userName);
     }
 
     public void onClick(View view){

@@ -50,6 +50,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     private GoogleMap gMap;
     private GoogleApiClient googleApiClient;
+    private Location myLocation;
     private Marker myLocationMarker;
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
@@ -57,7 +58,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private List<String> friendsList = new ArrayList<>();
     private Map<String,LatLng> friendsLocations = new HashMap<>();
 
-    private static final int MY_LOCATION_PERMISSION_REQUEST_CODE = 1;
+    private static final int MY_LOCATION_PERMISSION_REQUEST_CODE = 101;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,25 +110,27 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                         String friendsName = friendsList.get(position);
 
                         // TODO: Get friend's location from database
-                LatLng friendsLocation = friendsLocations.get(friendsName);
+                        LatLng friendsLocation = friendsLocations.get(friendsName);
 
-                // creating friend's marker
-                MarkerOptions friendsMarker = new MarkerOptions();
-                friendsMarker.position(friendsLocation)
-                        .title(friendsName)
-                        .icon(BitmapDescriptorFactory
-                                .defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                        // creating friend's marker
+                        MarkerOptions friendsMarker = new MarkerOptions();
+                        friendsMarker.position(friendsLocation)
+                                .title(friendsName)
+                                .icon(BitmapDescriptorFactory
+                                        .defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
 
-                // adding friends marker and moving camera to friends position
-                gMap.addMarker(friendsMarker);
-                gMap.moveCamera(CameraUpdateFactory.newLatLng(friendsLocation));
-                        gMap.animateCamera(CameraUpdateFactory.zoomTo(11));
+                        // adding friends marker and moving camera to friends position
+                        gMap.addMarker(friendsMarker);
+                        gMap.moveCamera(CameraUpdateFactory.newLatLng(friendsLocation));
+                        gMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+
+                        // closing drawers after clicking on a friend
                         drawerLayout.closeDrawers();
+                        drawerToggle.setHomeAsUpIndicator(R.drawable.icon_friends);
                     }
                 });
             }
         }, 500);
-
 
     }
 
@@ -237,30 +240,23 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     public void onLocationChanged(Location location) {
         // in case app needs to manipulate my last location,
         // otherwise not needed (for right now) -- uncomment to use
-//        Location myLastLocation = location;
-        // TODO: Send my location to database
-
+        myLocation = location;
+        // remove location marker if it exists
         if(myLocationMarker != null)
             myLocationMarker.remove();
 
-        // place my current location marker
-        LatLng latlong = new LatLng(location.getLatitude(), location.getLongitude());
-        MarkerOptions myMarkerOptions = new MarkerOptions();
-        myMarkerOptions.position(latlong)
-                .title("You are here!")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN));
-        myLocationMarker = gMap.addMarker(myMarkerOptions);
+        LatLng latlong = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
+        myLocationMarker = gMap.addMarker(new MarkerOptions().position(latlong)
+                .title("You Are Here!")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN)));
 
         Log.d("ON LOCATION CHANGED", "My location: " + latlong.toString());
 
         // moving the map's camera
         gMap.moveCamera(CameraUpdateFactory.newLatLng(latlong));
-        gMap.animateCamera(CameraUpdateFactory.zoomTo(11));
+        gMap.animateCamera(CameraUpdateFactory.zoomTo(15));
 
-        // stop location updates
-        if(googleApiClient != null)
-            LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
-
+        // TODO: Send my location to database
         // update location to firebase in intervals
         FirebaseDatabase.getInstance().getReference()
                 .child("users").child(userID).child("latitude").setValue(latlong.latitude);
@@ -274,12 +270,13 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         // locationRequest used to get quality of service for location updates
         // from FusedLocationProviderAPI using requestLocationUpdates
         LocationRequest locationRequest = new LocationRequest();
-        locationRequest.setInterval(1000);
-        locationRequest.setFastestInterval(1000);
+        locationRequest.setInterval(30000); // in milliseconds
+        locationRequest.setSmallestDisplacement(5); // in meters
         locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
 
         if(ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            Log.d("ON CONNECTED", "setting up location updates with fused locatino api");
             LocationServices.FusedLocationApi
                     .requestLocationUpdates(googleApiClient, locationRequest, this);
         }
@@ -316,14 +313,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     drawerToggle.setHomeAsUpIndicator(R.drawable.icon_map);
                 }
                 break;
-            case R.id.options_map_settings:
-                Log.d("OPTIONS ITEM SELECTED", "You clicked Map Settings");
-                // TODO: Make an activity to change the map settings
-                break;
-            case R.id.options_account_settings:
-                Log.d("OPTIONS ITEM SELECTED", "You clicked Account Settings");
-                // TODO: Make an activity to change the account settings
-                break;
             case R.id.options_logout:
                 Log.d("OPTIONS ITEM SELECTED", "You clicked Logout");
                 // TODO: Sign out of the app
@@ -344,5 +333,18 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 // TODO: Make intent to message. Figure out which friend you tapped
                 break;
         }
+    }
+
+    public void addFriendButtonListener(View view) {
+        // TODO: Handle listener for "Add Friend" button in the friend's list
+        Log.d("FRIENDS LIST FEATURE", "You clicked on Add a Friend button");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        if(googleApiClient != null)
+            LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
     }
 }
