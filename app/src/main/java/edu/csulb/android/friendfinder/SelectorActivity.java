@@ -21,12 +21,10 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class SelectorActivity extends BaseActivity {
     private String friendName = "";
-    private String userName;
     private String userID;
     private List<String> friends;
 
