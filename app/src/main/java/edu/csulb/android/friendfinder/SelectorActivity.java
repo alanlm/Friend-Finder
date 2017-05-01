@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
@@ -19,7 +20,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.ArrayList;
+
 import java.util.List;
 
 public class SelectorActivity extends BaseActivity {
@@ -27,13 +28,31 @@ public class SelectorActivity extends BaseActivity {
     private String userID;
     private List<String> friends;
 
+
+    private DatabaseReference mRef;
+    private TextView mUserName;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_selector);
 
         userID = getIntent().getStringExtra("uid");
+        mUserName = (TextView) findViewById(R.id.selector_username);
+        mRef = FirebaseDatabase.getInstance().getReference();
+        mRef.child("users").child(userID).child("username")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        String value = dataSnapshot.getValue(String.class);
+                        mUserName.setText(value);
+                    }
 
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
     }
 
     public void onClick(View view){
