@@ -94,6 +94,7 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                         textView.setText(username);
                         Intent intent = new Intent(LoginActivity.this, SelectorActivity.class);
                         intent.putExtra("uid",fbUser.getUid());
+                        intent.putExtra("username",username);
                         startActivity(intent);
                     }
 
@@ -190,6 +191,7 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
             mDatabase.child("users").child(fbUser.getUid()).setValue(user);
             Intent intent = new Intent(this,SelectorActivity.class);
             intent.putExtra("uid",fbUser.getUid());
+            intent.putExtra("username",username);
             startActivity(intent);
         }
     }
