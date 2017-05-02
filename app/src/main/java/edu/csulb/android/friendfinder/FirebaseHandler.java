@@ -6,11 +6,14 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.GenericTypeIndicator;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+
+import org.json.JSONArray;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +24,30 @@ import java.util.Map;
 public class FirebaseHandler {
     List<String> friendsList = new ArrayList();
     Map<String,LatLng> friendsLocation = new HashMap<>();
+    Map<String,List<String>> friendInfo = new HashMap<>();
+    private String uName;
+
+
+
+    public String getUsername(String uid) {
+        Log.d("Firebase initial", uid);
+        FirebaseDatabase.getInstance().getReference().child("users").child(uid).child("username")
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        Log.d("Setting userName", String.valueOf(dataSnapshot.getValue()));
+                        uName = String.valueOf(dataSnapshot.getValue());
+                        System.out.println(uName);
+                        Log.d("userName", String.valueOf(dataSnapshot.getValue()));
+                    }
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Log.d("DATA-ERROR", "error: " + databaseError.getCode() );
+                    }
+                });
+        Log.d("Sending username", "username:" + uName);
+        return uName;
+    }
 
     public void getUsernames(){
         FirebaseDatabase.getInstance().getReference().child("users")
@@ -55,6 +82,35 @@ public class FirebaseHandler {
                     }
                 });
         return friendsList;
+    }
+
+    // get friend's friendlist to add yourself to a friend's list
+    public Map<String,List<String>> getFriendsFriendList(final String username,final String friendName){
+        final Query query = FirebaseDatabase.getInstance().getReference().child("users")
+                .orderByChild("username")
+                .equalTo(friendName);
+        query.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // get friend's uid
+                DataSnapshot snap = dataSnapshot.getChildren().iterator().next();
+                String uid = String.valueOf(snap.getKey());
+                Log.d("AddFriend", String.valueOf(dataSnapshot.toString()));
+                Log.d("AddFriend", uid);
+                List<String> newList = new ArrayList<>();
+                if(snap.child("friends").getValue() != null) {
+                    newList.addAll((List<String>) snap.child("friends").getValue());
+                }
+                newList.add(username);
+                friendInfo.put(uid,newList);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+        return friendInfo;
     }
 
     public Map<String,LatLng> getFriendLocationMap(final List<String> friends){

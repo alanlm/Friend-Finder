@@ -17,12 +17,28 @@
         android:layout_height="match_parent"
         android:layout_gravity="start">
 
-        <ListView
-            android:id="@+id/friends_listview"
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="start"
-            android:choiceMode="singleChoice"/>
+            android:layout_height="match_parent">
+
+            <ListView
+                android:id="@+id/friends_listview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="start"
+                android:choiceMode="singleChoice" />
+
+            <Button
+                android:id="@+id/friendslist_add_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                style="@style/Widget.AppCompat.Button.Colored"
+                android:text="Add a Friend"
+                android:textSize="30sp"
+                android:onClick="addFriendButtonListener"/>
+
+        </RelativeLayout>
 
     </android.support.design.widget.NavigationView>
 

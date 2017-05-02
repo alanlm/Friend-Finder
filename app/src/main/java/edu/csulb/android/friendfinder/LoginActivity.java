@@ -119,6 +119,7 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                     if(username != null){
                         Intent intent = new Intent(LoginActivity.this, SelectorActivity.class);
                         intent.putExtra("uid",fbUser.getUid());
+                        intent.putExtra("username",username);
                         startActivity(intent);
                     }
 
@@ -222,6 +223,7 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
             // check if username has been entered and matches whats on the database
             Intent intent = new Intent(this,SelectorActivity.class);
             intent.putExtra("uid",fbUser.getUid());
+            intent.putExtra("username",username);
             startActivity(intent);
         }
     }
