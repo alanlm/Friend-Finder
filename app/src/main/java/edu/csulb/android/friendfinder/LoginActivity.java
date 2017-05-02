@@ -48,6 +48,8 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
     private FirebaseAuth.AuthStateListener mAuthListener;
     private DatabaseReference mDatabase;
     private String username;
+    private String phoneNumber;
+    private EditText phoneNumberField;
 
     private GoogleApiClient mGoogleApiClient;
     private FirebaseUser fbUser;
@@ -179,16 +181,23 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                 });
     }
 
+    // TODO add user phone number to database
+    // first time user
     public void onClick(View v) {
         int i = v.getId();
         if (i == R.id.login_button) {
             usernameField = (EditText) findViewById(R.id.username_login);
+            phoneNumberField = (EditText) findViewById(R.id.phonenumber_login);
             if(usernameField.getText().toString().length() != 0) {
                 username = usernameField.getText().toString();
                 writeToFile(username); // cache username
             }
+            if (phoneNumberField.getText().toString().length() != 0) { // field is not empty
+                phoneNumber = phoneNumberField.getText().toString();
+            }
             User user = new User(username);
             mDatabase.child("users").child(fbUser.getUid()).setValue(user);
+            mDatabase.child("users").child(fbUser.getUid()).child("phone-number").setValue(phoneNumber); // adding phone number to database
             Intent intent = new Intent(this,SelectorActivity.class);
             intent.putExtra("uid",fbUser.getUid());
             intent.putExtra("username",username);

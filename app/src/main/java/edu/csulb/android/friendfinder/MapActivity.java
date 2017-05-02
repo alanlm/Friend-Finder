@@ -225,7 +225,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                         gMap.setMyLocationEnabled(true);
                     } else {
                         // permission denied, Disable the functionality
-                        Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT);
+                        Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show();
                     }
                     return;
                 }
