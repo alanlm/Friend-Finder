@@ -7,6 +7,18 @@
     android:background="@android:color/holo_blue_light"
     tools:context="edu.csulb.android.friendfinder.SelectorActivity">
 
+    <TextView
+        android:id="@+id/selector_username"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="58dp"
+        android:ems="10"
+        android:inputType="text"
+        android:textAlignment="center"
+        android:textSize="30sp" />
+
     <Button
         android:id="@+id/friend_add_button"
         android:background="@drawable/my_button"
