@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.telephony.PhoneNumberUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -38,6 +39,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.Locale;
 import java.util.Random;
 
 public class LoginActivity extends BaseActivity implements GoogleApiClient.OnConnectionFailedListener {
@@ -182,6 +184,7 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
     }
 
     // TODO add user phone number to database
+    // TODO validate phone number, cant login if the phone number is not active
     // first time user
     public void onClick(View v) {
         int i = v.getId();
@@ -192,8 +195,14 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                 username = usernameField.getText().toString();
                 writeToFile(username); // cache username
             }
-            if (phoneNumberField.getText().toString().length() != 0) { // field is not empty
-                phoneNumber = phoneNumberField.getText().toString();
+            if (phoneNumberField.getText().length() <= 0 ) // no phone number is entered
+                Toast.makeText(this, "Please enter a phone number", Toast.LENGTH_SHORT).show();
+            if (phoneNumberField.getText().toString().length() != 0) { // field is not empty, TODO check valid phone number
+                // phoneNumber = phoneNumberField.getText().toString();
+                System.out.println("Phone number text field" + phoneNumberField.getText().toString());
+                phoneNumber = PhoneNumberUtils.formatNumber
+                        (phoneNumberField.getText().toString(), Locale.getDefault().getCountry());
+                Log.d("PhoneNumber", " : " + phoneNumber);
             }
             User user = new User(username);
             mDatabase.child("users").child(fbUser.getUid()).setValue(user);
@@ -204,6 +213,11 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
             startActivity(intent);
         }
     }
+
+//    public String validatePhoneNumber(String phoneNumber) {
+//        String phone = PhoneNumberUtils.formatNumber(phoneNumber, Locale.getDefault().getCountry());
+//        return phone;
+//    }
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
