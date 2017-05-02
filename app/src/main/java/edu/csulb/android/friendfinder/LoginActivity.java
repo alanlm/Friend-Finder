@@ -116,11 +116,7 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
 
                     Log.d("SIGNIN", "AUTO LOGIN USERNAME: " + username);
 
-//                     ** DEPRECATED **
                     if(username != null){
-//                        TextView textView = (TextView) findViewById(R.id.name_view);
-//                        Log.d("USER-CHECK",username);
-//                        textView.setText(username);
                         Intent intent = new Intent(LoginActivity.this, SelectorActivity.class);
                         intent.putExtra("uid",fbUser.getUid());
                         startActivity(intent);
@@ -215,23 +211,6 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
             usernameField = (EditText) findViewById(R.id.username_login);
 
             username = usernameField.getText().toString();
-
-//            mDatabase.child("users").child(fbUser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
-//                @Override
-//                public void onDataChange(DataSnapshot dataSnapshot) {
-//                    User user = dataSnapshot.getValue(User.class);
-//                    try {
-//                        username = user.username;
-//                    } catch (NullPointerException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//
-//                @Override
-//                public void onCancelled(DatabaseError databaseError) {
-//
-//                }
-//            });
 
             User user = new User(username);
             mDatabase.child("users").child(fbUser.getUid()).setValue(user);
