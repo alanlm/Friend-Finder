@@ -335,10 +335,10 @@ public class MapActivity extends SelectorActivity implements OnMapReadyCallback,
                     drawerToggle.setHomeAsUpIndicator(R.drawable.icon_map);
                 }
                 break;
-            case R.id.options_logout:
-                Log.d("OPTIONS ITEM SELECTED", "You clicked Logout");
+            case R.id.options_quitApp:
+                Log.d("OPTIONS ITEM SELECTED", "You clicked Quit Application");
                 // TODO: Sign out of the app
-                finish();
+                finishAffinity();
                 break;
         }
         return true;
