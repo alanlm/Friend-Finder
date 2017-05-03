@@ -43,7 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MapActivity extends AppCompatActivity implements OnMapReadyCallback,
+public class MapActivity extends SelectorActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
@@ -338,6 +338,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     public void addFriendButtonListener(View view) {
         // TODO: Handle listener for "Add Friend" button in the friend's list
         Log.d("FRIENDS LIST FEATURE", "You clicked on Add a Friend button");
+        alertDialog();
     }
 
     @Override

@@ -5,6 +5,7 @@ import android.util.Log;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
@@ -22,16 +23,16 @@ import java.util.Map;
  */
 
 public class FirebaseHandler {
-    List<String> friendsList = new ArrayList();
-    Map<String,LatLng> friendsLocation = new HashMap<>();
-    Map<String,List<String>> friendInfo = new HashMap<>();
+    private DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
+    private List<String> friendsList = new ArrayList();
+    private Map<String,LatLng> friendsLocation = new HashMap<>();
+    private Map<String,List<String>> friendInfo = new HashMap<>();
     private String uName;
-
 
 
     public String getUsername(String uid) {
         Log.d("Firebase initial", uid);
-        FirebaseDatabase.getInstance().getReference().child("users").child(uid).child("username")
+        mDatabase.child("users").child(uid).child("username")
                 .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
@@ -50,7 +51,7 @@ public class FirebaseHandler {
     }
 
     public void getUsernames(){
-        FirebaseDatabase.getInstance().getReference().child("users")
+        mDatabase.child("users")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
@@ -67,8 +68,8 @@ public class FirebaseHandler {
     }
 
     public List<String> readFriends(String uid){
-        FirebaseDatabase.getInstance().getReference().child("users").child(uid).child("friends")
-                .addValueEventListener(new ValueEventListener() {
+        mDatabase.child("users").child(uid).child("friends")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         for(DataSnapshot snap: dataSnapshot.getChildren()) {
@@ -86,10 +87,10 @@ public class FirebaseHandler {
 
     // get friend's friendlist to add yourself to a friend's list
     public Map<String,List<String>> getFriendsFriendList(final String username,final String friendName){
-        final Query query = FirebaseDatabase.getInstance().getReference().child("users")
+        final Query query = mDatabase.child("users")
                 .orderByChild("username")
                 .equalTo(friendName);
-        query.addValueEventListener(new ValueEventListener() {
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // get friend's uid
