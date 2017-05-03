@@ -38,13 +38,14 @@ public class SelectorActivity extends BaseActivity {
         TextView textView = (TextView) findViewById(R.id.text_view);
         textView.setText("Signed in as " + username);
     }
-    public void userName(String userID) {
-        FirebaseHandler fbHandler = new FirebaseHandler();
-        userName = fbHandler.getUsername(userID);
-        //
-        mUserName = (TextView) findViewById(R.id.selector_username);
-        mUserName.setText(userName);
-    }
+
+//    public void userName(String userID) {
+//        FirebaseHandler fbHandler = new FirebaseHandler();
+//        userName = fbHandler.getUsername(userID);
+//        //
+//        mUserName = (TextView) findViewById(R.id.selector_username);
+//        mUserName.setText(userName);
+//    }
 
     public void onClick(View view){
         switch (view.getId()) {
