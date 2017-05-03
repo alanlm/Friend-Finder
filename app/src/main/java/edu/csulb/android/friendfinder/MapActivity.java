@@ -1,8 +1,10 @@
 package edu.csulb.android.friendfinder;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -20,6 +22,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -344,18 +347,30 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         return true;
     }
 
-    public void friendsListFeatureListener(View v) {
-        switch(v.getId()) {
-            case R.id.friends_call:
-                Log.d("FRIENDS LIST FEATURE", "You clicked to call your friend");
-                // TODO: Make intent to call. Figure out which friend you tapped
-                break;
-            case R.id.friends_message:
-                Log.d("FRIENDS LIST FEATURE", "You clicked to message your friend");
-                // TODO: Make intent to message. Figure out which friend you tapped
-                break;
-        }
-    }
+//    public void friendsListFeatureListener(View v) {
+//        switch(v.getId()) {
+//            case R.id.friends_call:
+//                Log.d("FRIENDS LIST FEATURE", "You clicked to call your friend");
+//                // TODO: Make intent to call. Figure out which friend you tapped
+//                Intent phoneIntent = new Intent(Intent.ACTION_DIAL);
+//                phoneIntent.setData(Uri.parse("tel:888-8888")); // get friends number
+//
+//                // getting friend's name
+//                TextView friendname_textview = (TextView) v.findViewById(R.id.friends_name);
+//                Log.d("CALLING INTENT", "Friend's name: " + friendname_textview.getText());
+//                try {
+//                    startActivity(phoneIntent);
+//                }
+//                catch(final SecurityException ex) {
+//
+//                }
+//                break;
+//            case R.id.friends_message:
+//                Log.d("FRIENDS LIST FEATURE", "You clicked to message your friend");
+//                // TODO: Make intent to message. Figure out which friend you tapped
+//                break;
+//        }
+//    }
 
     public void addFriendButtonListener(View view) {
         // TODO: Handle listener for "Add Friend" button in the friend's list
