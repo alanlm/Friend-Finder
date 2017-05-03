@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.telephony.PhoneNumberUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -42,6 +43,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.Locale;
 import java.util.Random;
 
 public class LoginActivity extends BaseActivity implements GoogleApiClient.OnConnectionFailedListener {
@@ -52,6 +54,8 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
     private FirebaseAuth.AuthStateListener mAuthListener;
     private DatabaseReference mDatabase;
     private String username;
+    private String phoneNumber;
+    private EditText phoneNumberField;
 
     private GoogleApiClient mGoogleApiClient;
     private FirebaseUser fbUser;
@@ -204,8 +208,10 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                 });
     }
 
-
     /// for first time users
+    // TODO add user phone number to database
+    // TODO validate phone number, cant login if the phone number is not active
+    // first time user
     public void onClick(View v) {
         int i = v.getId();
         if (i == R.id.login_button) {
@@ -221,12 +227,36 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
             Log.d("SIGNIN", "UsernameField is: " + usernameField.getText().toString());
 
             // check if username has been entered and matches whats on the database
+          
+            phoneNumberField = (EditText) findViewById(R.id.phonenumber_login);
+            if(usernameField.getText().toString().length() != 0) {
+                username = usernameField.getText().toString();
+                writeToFile(username); // cache username
+            }
+            if (phoneNumberField.getText().length() <= 0 ) // no phone number is entered
+                Toast.makeText(this, "Please enter a phone number", Toast.LENGTH_SHORT).show();
+            if (phoneNumberField.getText().toString().length() != 0) { // field is not empty, TODO check valid phone number
+                // phoneNumber = phoneNumberField.getText().toString();
+                System.out.println("Phone number text field" + phoneNumberField.getText().toString());
+                phoneNumber = PhoneNumberUtils.formatNumber
+                        (phoneNumberField.getText().toString(), Locale.getDefault().getCountry());
+                Log.d("PhoneNumber", " : " + phoneNumber);
+            }
+            User user = new User(username);
+            mDatabase.child("users").child(fbUser.getUid()).setValue(user);
+            mDatabase.child("users").child(fbUser.getUid()).child("phone-number").setValue(phoneNumber); // adding phone number to database
+          
             Intent intent = new Intent(this,SelectorActivity.class);
             intent.putExtra("uid",fbUser.getUid());
             intent.putExtra("username",username);
             startActivity(intent);
         }
     }
+
+//    public String validatePhoneNumber(String phoneNumber) {
+//        String phone = PhoneNumberUtils.formatNumber(phoneNumber, Locale.getDefault().getCountry());
+//        return phone;
+//    }
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {

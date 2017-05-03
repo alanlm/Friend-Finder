@@ -1,5 +1,7 @@
 package edu.csulb.android.friendfinder;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Handler;
@@ -18,13 +20,10 @@ import java.util.Map;
 
 public class SelectorActivity extends BaseActivity {
     private String friendName = "";
-    private String userName;
     private String userID;
     private String username;
     private List<String> friends;
     private EditText input;
-
-    private TextView mUserName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,50 +37,48 @@ public class SelectorActivity extends BaseActivity {
         TextView textView = (TextView) findViewById(R.id.text_view);
         textView.setText("Signed in as " + username);
     }
-    public void userName(String userID) {
-        FirebaseHandler fbHandler = new FirebaseHandler();
-        userName = fbHandler.getUsername(userID);
-        //
-        mUserName = (TextView) findViewById(R.id.selector_username);
-        mUserName.setText(userName);
-    }
 
     public void onClick(View view){
         switch (view.getId()) {
             case R.id.friend_add_button:
-                AlertDialog.Builder alertDialog = new AlertDialog.Builder(SelectorActivity.this);
-                alertDialog.setTitle("Add Friend");
-                alertDialog.setMessage("Enter Username");
-                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.MATCH_PARENT);
-                input.setLayoutParams(lp);
-                alertDialog.setView(input);
-                alertDialog.setIcon(R.mipmap.friend_icon);
-
-                alertDialog.setPositiveButton("ADD",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                addFriend();
-                            }
-                        });
-
-                alertDialog.setNegativeButton("CANCEL",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.cancel();
-                            }
-                        });
-
-                alertDialog.show();
+                alertDialog();
             break;
 
             case R.id.find_friend_button:
                 Intent intent = new Intent(SelectorActivity.this, MapActivity.class);
                 intent.putExtra("uid", userID);
+                intent.putExtra("username", username);
                 startActivity(intent);
                 break;
         }
+    }
+
+    public void alertDialog(){
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(SelectorActivity.this);
+        alertDialog.setTitle("Add Friend");
+        alertDialog.setMessage("Enter Username");
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT);
+        input.setLayoutParams(lp);
+        alertDialog.setView(input);
+        alertDialog.setIcon(R.mipmap.friend_icon);
+
+        alertDialog.setPositiveButton("ADD",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        addFriend();
+                    }
+                });
+
+        alertDialog.setNegativeButton("CANCEL",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+        alertDialog.show();
     }
 
     public void addFriend(){
@@ -107,6 +104,8 @@ public class SelectorActivity extends BaseActivity {
                             .child("users").child(userID).child("friends").setValue(friends);
                     Toast.makeText(getApplicationContext(),friendName + " Was Added",Toast.LENGTH_SHORT).show();
 
+                    username = getIntent().getStringExtra("username");
+                    Log.d("WHY", "Usernmae: " + username);
                     // add yourself to friend's friendlist
                     final Map friendInfo =fbHandler.getFriendsFriendList(username,friendName);
                     handler.postDelayed(new Runnable() {
@@ -116,6 +115,10 @@ public class SelectorActivity extends BaseActivity {
                                     (Map.Entry<String, List<String>>) friendInfo.entrySet().iterator().next();
                             FirebaseDatabase.getInstance().getReference()
                                     .child("users").child(entry.getKey()).child("friends").setValue(entry.getValue());
+                            Log.d("WHY","Friend uid: "+entry.getKey());
+                            for(String s: entry.getValue()) {
+                                Log.d("WHY", "Friend's friends: " + s);
+                            }
                         }
                     },500);
 

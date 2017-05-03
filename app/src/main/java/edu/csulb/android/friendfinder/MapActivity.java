@@ -43,7 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MapActivity extends AppCompatActivity implements OnMapReadyCallback,
+public class MapActivity extends SelectorActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
@@ -82,6 +82,29 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         getSupportActionBar().setDefaultDisplayHomeAsUpEnabled(true);
         drawerToggle.setDrawerIndicatorEnabled(false);
         drawerToggle.setHomeAsUpIndicator(R.drawable.icon_friends);
+
+        // changes icon when drawer opens/closes
+        drawerLayout.setDrawerListener(new DrawerLayout.DrawerListener() {
+            @Override
+            public void onDrawerSlide(View drawerView, float slideOffset) {
+
+            }
+
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                drawerToggle.setHomeAsUpIndicator(R.drawable.icon_map);
+            }
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                drawerToggle.setHomeAsUpIndicator(R.drawable.icon_friends);
+            }
+
+            @Override
+            public void onDrawerStateChanged(int newState) {
+
+            }
+        });
 
         userID = getIntent().getStringExtra("uid");
 
@@ -131,7 +154,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 });
             }
         }, 500);
-
     }
 
     @Override
@@ -225,7 +247,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                         gMap.setMyLocationEnabled(true);
                     } else {
                         // permission denied, Disable the functionality
-                        Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT);
+                        Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show();
                     }
                     return;
                 }
@@ -338,6 +360,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     public void addFriendButtonListener(View view) {
         // TODO: Handle listener for "Add Friend" button in the friend's list
         Log.d("FRIENDS LIST FEATURE", "You clicked on Add a Friend button");
+        alertDialog();
     }
 
     @Override
