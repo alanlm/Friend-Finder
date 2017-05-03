@@ -83,6 +83,29 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         drawerToggle.setDrawerIndicatorEnabled(false);
         drawerToggle.setHomeAsUpIndicator(R.drawable.icon_friends);
 
+        // changes icon when drawer opens/closes
+        drawerLayout.setDrawerListener(new DrawerLayout.DrawerListener() {
+            @Override
+            public void onDrawerSlide(View drawerView, float slideOffset) {
+
+            }
+
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                drawerToggle.setHomeAsUpIndicator(R.drawable.icon_map);
+            }
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                drawerToggle.setHomeAsUpIndicator(R.drawable.icon_friends);
+            }
+
+            @Override
+            public void onDrawerStateChanged(int newState) {
+
+            }
+        });
+
         userID = getIntent().getStringExtra("uid");
 
         FirebaseHandler fbHandler = new FirebaseHandler();
@@ -131,7 +154,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 });
             }
         }, 500);
-
     }
 
     @Override
