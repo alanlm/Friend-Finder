@@ -28,8 +28,12 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -77,7 +81,8 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
         signIn();
 
         // check if name is cached
-        username = readFromFile();
+        // ** DEPRECATED **
+        // username = readFromFile();
 
         // [START initialize_auth]
         mAuth = FirebaseAuth.getInstance();
@@ -91,11 +96,31 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                 if (fbUser != null) {
                     // User is signed in
                     Log.d("SIGNIN","signed in as " + fbUser.getUid());
+
                     // if cached then show username and store in database
-                    if(username != null && username.length()!= 0){
-                        TextView textView = (TextView) findViewById(R.id.name_view);
-                        Log.d("USER-CHECK",username);
-                        textView.setText(username);
+//                    username = mDatabase.child("users").child(fbUser.getUid()).child("username").getKey();
+
+                    mDatabase.child("users").child(fbUser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            User user = dataSnapshot.getValue(User.class);
+                            try {
+                                username = user.username;
+                            } catch (NullPointerException e) {
+                                Log.d("SIGNIN", "Username is Null!");
+                                e.printStackTrace();
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+
+                    Log.d("SIGNIN", "AUTO LOGIN USERNAME: " + username);
+
+                    if(username != null){
                         Intent intent = new Intent(LoginActivity.this, SelectorActivity.class);
                         intent.putExtra("uid",fbUser.getUid());
                         intent.putExtra("username",username);
@@ -183,6 +208,7 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                 });
     }
 
+    /// for first time users
     // TODO add user phone number to database
     // TODO validate phone number, cant login if the phone number is not active
     // first time user
@@ -190,6 +216,18 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
         int i = v.getId();
         if (i == R.id.login_button) {
             usernameField = (EditText) findViewById(R.id.username_login);
+
+            username = usernameField.getText().toString();
+
+            User user = new User(username);
+            mDatabase.child("users").child(fbUser.getUid()).setValue(user);
+
+            // Debugging
+            Log.d("SIGNIN", "Username is: " + username);
+            Log.d("SIGNIN", "UsernameField is: " + usernameField.getText().toString());
+
+            // check if username has been entered and matches whats on the database
+          
             phoneNumberField = (EditText) findViewById(R.id.phonenumber_login);
             if(usernameField.getText().toString().length() != 0) {
                 username = usernameField.getText().toString();
@@ -207,6 +245,7 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
             User user = new User(username);
             mDatabase.child("users").child(fbUser.getUid()).setValue(user);
             mDatabase.child("users").child(fbUser.getUid()).child("phone-number").setValue(phoneNumber); // adding phone number to database
+          
             Intent intent = new Intent(this,SelectorActivity.class);
             intent.putExtra("uid",fbUser.getUid());
             intent.putExtra("username",username);

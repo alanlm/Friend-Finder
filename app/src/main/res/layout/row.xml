@@ -19,8 +19,7 @@
         android:layout_height="wrap_content"
         android:src="@drawable/icon_message"
         android:layout_alignParentEnd="true"
-        android:layout_marginEnd="10dp"
-        android:onClick="friendsListFeatureListener"/>
+        android:layout_marginEnd="10dp"/>
 
     <ImageView
         android:id="@+id/friends_call"
@@ -28,7 +27,6 @@
         android:layout_height="wrap_content"
         android:src="@drawable/icon_call"
         android:layout_toStartOf="@id/friends_message"
-        android:layout_marginEnd="10dp"
-        android:onClick="friendsListFeatureListener"/>
+        android:layout_marginEnd="10dp"/>
 
 </RelativeLayout>

@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/FinalProject_FriendFinder.iml" filepath="$PROJECT_DIR$/FinalProject_FriendFinder.iml" />
       <module fileurl="file://$PROJECT_DIR$/Friend-Finder.iml" filepath="$PROJECT_DIR$/Friend-Finder.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Friend_Finder.iml" filepath="$PROJECT_DIR$/Friend_Finder.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
