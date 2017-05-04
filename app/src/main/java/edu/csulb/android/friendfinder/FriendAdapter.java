@@ -1,5 +1,6 @@
 package edu.csulb.android.friendfinder;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -45,7 +46,8 @@ public class FriendAdapter extends ArrayAdapter {
                 phoneIntent.setData(Uri.parse("tel:888-8888")); // get friends number
                 Log.d("CALLING INTENT", "Friend's name: " + friends_name.getText());
                 try {
-                    getContext().startActivity(phoneIntent);
+                    phoneIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    v.getContext().startActivity(phoneIntent);
                 }
                 catch(final SecurityException ex) {
 

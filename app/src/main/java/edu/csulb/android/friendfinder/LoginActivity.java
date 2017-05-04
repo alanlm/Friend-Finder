@@ -242,7 +242,6 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                         (phoneNumberField.getText().toString(), Locale.getDefault().getCountry());
                 Log.d("PhoneNumber", " : " + phoneNumber);
             }
-            User user = new User(username);
             mDatabase.child("users").child(fbUser.getUid()).setValue(user);
             mDatabase.child("users").child(fbUser.getUid()).child("phone-number").setValue(phoneNumber); // adding phone number to database
           
