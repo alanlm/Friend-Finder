@@ -79,11 +79,7 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
         signIn();
-
-        // check if name is cached
-        // ** DEPRECATED **
-        // username = readFromFile();
-
+      
         // [START initialize_auth]
         mAuth = FirebaseAuth.getInstance();
         // [END initialize_auth]
@@ -96,9 +92,6 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                 if (fbUser != null) {
                     // User is signed in
                     Log.d("SIGNIN","signed in as " + fbUser.getUid());
-
-                    // if cached then show username and store in database
-//                    username = mDatabase.child("users").child(fbUser.getUid()).child("username").getKey();
 
                     mDatabase.child("users").child(fbUser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
@@ -231,7 +224,6 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
             phoneNumberField = (EditText) findViewById(R.id.phonenumber_login);
             if(usernameField.getText().toString().length() != 0) {
                 username = usernameField.getText().toString();
-                writeToFile(username); // cache username
             }
             if (phoneNumberField.getText().length() <= 0 ) // no phone number is entered
                 Toast.makeText(this, "Please enter a phone number", Toast.LENGTH_SHORT).show();
@@ -242,7 +234,6 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                         (phoneNumberField.getText().toString(), Locale.getDefault().getCountry());
                 Log.d("PhoneNumber", " : " + phoneNumber);
             }
-
             mDatabase.child("users").child(fbUser.getUid()).setValue(user);
             mDatabase.child("users").child(fbUser.getUid()).child("phone-number").setValue(phoneNumber); // adding phone number to database
           
@@ -264,38 +255,5 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
         // be available.
         Log.d(TAG, "onConnectionFailed:" + connectionResult);
         Toast.makeText(this, "Google Play Services error.", Toast.LENGTH_SHORT).show();
-    }
-
-    public String readFromFile() {
-        String name = "";
-        try {
-            InputStream inputStream = openFileInput("data.txt");
-
-            if ( inputStream != null ) {
-                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-                name = bufferedReader.readLine();
-            }
-
-        }
-        catch (FileNotFoundException e) {
-            Log.e("login activity", "File not found: " + e.toString());
-        } catch (IOException e) {
-            Log.e("login activity", "Can not read file: " + e.toString());
-        }
-
-        return name;
-    }
-
-    public void writeToFile(String data) {
-        try {
-            FileOutputStream fou = openFileOutput("data.txt", Context.MODE_PRIVATE);
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fou);
-            outputStreamWriter.write(data);
-            outputStreamWriter.close();
-        }
-        catch (IOException e) {
-            Log.e("Exception", "File write failed: " + e.toString());
-        }
     }
 }
