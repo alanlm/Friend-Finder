@@ -11,12 +11,13 @@ public class User {
     public List<String> friends;
     public double latitude;
     public double longitude;
-
+    public String phonenumber;
     public User(){
     }
 
-    public User(String username){
+    public User(String username/*, String phoneNumber */){
         this.username = username;
+        //.this.phoneNumber = phoneNumber;
     }
 
 }
