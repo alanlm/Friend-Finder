@@ -225,17 +225,14 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
             if(usernameField.getText().toString().length() != 0) {
                 username = usernameField.getText().toString();
             }
-            if (phoneNumberField.getText().length() <= 0 ) // no phone number is entered
-                Toast.makeText(this, "Please enter a phone number", Toast.LENGTH_SHORT).show();
-            if (phoneNumberField.getText().toString().length() != 0) { // field is not empty, TODO check valid phone number
-                // phoneNumber = phoneNumberField.getText().toString();
-                System.out.println("Phone number text field" + phoneNumberField.getText().toString());
-                phoneNumber = PhoneNumberUtils.formatNumber
-                        (phoneNumberField.getText().toString(), Locale.getDefault().getCountry());
-                Log.d("PhoneNumber", " : " + phoneNumber);
-            }
+            // phone number validation
+            if (phoneNumberField.getText().length() <= 0 && phoneNumberField.getText().length() >= 12)
+                Toast.makeText(this, "Please enter a  valid phone number", Toast.LENGTH_SHORT).show();
+            phoneNumber = PhoneNumberUtils.formatNumber
+                    (phoneNumberField.getText().toString(), Locale.getDefault().getCountry());
+            Log.d("PhoneNumber", " : " + phoneNumber);
             mDatabase.child("users").child(fbUser.getUid()).setValue(user);
-            mDatabase.child("users").child(fbUser.getUid()).child("phone-number").setValue(phoneNumber); // adding phone number to database
+            mDatabase.child("users").child(fbUser.getUid()).child("phonenumber").setValue(phoneNumber); // adding phone number to database
           
             Intent intent = new Intent(this,SelectorActivity.class);
             intent.putExtra("uid",fbUser.getUid());
