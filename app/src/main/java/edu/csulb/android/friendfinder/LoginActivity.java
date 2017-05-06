@@ -3,6 +3,7 @@ package edu.csulb.android.friendfinder;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.PhoneNumberUtils;
@@ -56,6 +57,7 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
     private String username;
     private String phoneNumber;
     private EditText phoneNumberField;
+    private boolean userIsValid = false;
 
     private GoogleApiClient mGoogleApiClient;
     private FirebaseUser fbUser;
@@ -112,15 +114,20 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                     });
 
                     Log.d("SIGNIN", "AUTO LOGIN USERNAME: " + username);
-
-                    if(username != null){
-                        Intent intent = new Intent(LoginActivity.this, SelectorActivity.class);
-                        intent.putExtra("uid",fbUser.getUid());
-                        intent.putExtra("username",username);
-                        startActivity(intent);
-                    }
-
-                } else {
+                    Handler handler = new Handler();
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(username != null){
+                                Intent intent = new Intent(LoginActivity.this, SelectorActivity.class);
+                                intent.putExtra("uid",fbUser.getUid());
+                                intent.putExtra("username",username);
+                                startActivity(intent);
+                            }
+                        }
+                    },500);
+                }
+                else {
                     // User is signed out
                     Log.d("SIGNIN","signed out");
                 }
@@ -209,42 +216,70 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
         int i = v.getId();
         if (i == R.id.login_button) {
             usernameField = (EditText) findViewById(R.id.username_login);
+            phoneNumberField = (EditText) findViewById(R.id.phonenumber_login);
+
+            if(usernameField.getText().length() == 0){
+                Toast.makeText(this, "Please enter a username", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (phoneNumberField.getText().length() <= 0 && phoneNumberField.getText().length() >= 12) {// no phone number is entered
+                Toast.makeText(this, "Please enter a phone number", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
             username = usernameField.getText().toString();
 
-            User user = new User(username);
-            mDatabase.child("users").child(fbUser.getUid()).setValue(user);
+            mDatabase.child("users")
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            userIsValid = true;
+                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                User user = snapshot.getValue(User.class);
+                                Log.d("VALID-TEST", user.username);
+                                if (username.equals(user.username)) {
+                                    userIsValid = false;
+                                    Log.d("VALID-TEST", user.username + "exists");
+                                    return;
+                                }
+                            }
+                        }
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            Log.d("DATA-ERROR", "error: " + databaseError.getCode() );
+                        }
+                    });
 
-            // Debugging
-            Log.d("SIGNIN", "Username is: " + username);
-            Log.d("SIGNIN", "UsernameField is: " + usernameField.getText().toString());
+            showProgressDialog();
+            final Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    hideProgressDialog();
+                    if(!userIsValid){
+                        Toast.makeText(LoginActivity.this, "Username already exists", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    User user = new User(username);
+                    mDatabase.child("users").child(fbUser.getUid()).setValue(user);
 
-            // check if username has been entered and matches whats on the database
+                   if(usernameField.getText().toString().length() != 0) {
+                     username = usernameField.getText().toString();
+                   }
           
-            phoneNumberField = (EditText) findViewById(R.id.phonenumber_login);
-            if(usernameField.getText().toString().length() != 0) {
-                username = usernameField.getText().toString();
-            }
-            // phone number validation
-            if (phoneNumberField.getText().length() <= 0 && phoneNumberField.getText().length() >= 12)
-                Toast.makeText(this, "Please enter a  valid phone number", Toast.LENGTH_SHORT).show();
-            phoneNumber = PhoneNumberUtils.formatNumber
-                    (phoneNumberField.getText().toString(), Locale.getDefault().getCountry());
-            Log.d("PhoneNumber", " : " + phoneNumber);
-            mDatabase.child("users").child(fbUser.getUid()).setValue(user);
-            mDatabase.child("users").child(fbUser.getUid()).child("phonenumber").setValue(phoneNumber); // adding phone number to database
-          
-            Intent intent = new Intent(this,SelectorActivity.class);
-            intent.putExtra("uid",fbUser.getUid());
-            intent.putExtra("username",username);
-            startActivity(intent);
+                  phoneNumber = PhoneNumberUtils.formatNumber
+                          (phoneNumberField.getText().toString(), Locale.getDefault().getCountry());
+                  Log.d("PhoneNumber", " : " + phoneNumber);
+                  mDatabase.child("users").child(fbUser.getUid()).setValue(user);
+                  mDatabase.child("users").child(fbUser.getUid()).child("phonenumber").setValue(phoneNumber); // adding phone number to database
+                  Intent intent = new Intent(LoginActivity.this,SelectorActivity.class);
+                          intent.putExtra("uid",fbUser.getUid());
+                          intent.putExtra("username",username);
+                          startActivity(intent);
+                   }
+                },500);
         }
     }
-
-//    public String validatePhoneNumber(String phoneNumber) {
-//        String phone = PhoneNumberUtils.formatNumber(phoneNumber, Locale.getDefault().getCountry());
-//        return phone;
-//    }
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
