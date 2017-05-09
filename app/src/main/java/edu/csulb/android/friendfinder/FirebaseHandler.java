@@ -10,11 +10,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
-import org.json.JSONArray;
-
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -80,7 +77,7 @@ public class FirebaseHandler {
                             Log.d("VALID-TEST", user.username);
                             if (localUsername.equals(user.username)) {
                                 userIsValid = false;
-                                Log.d("VALID-TEST", user.username + "exists");
+                                Log.d("VALID-TEST", user.username + " exists");
                                 return;
                             }
                         }

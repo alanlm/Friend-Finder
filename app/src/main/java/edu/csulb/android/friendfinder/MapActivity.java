@@ -1,10 +1,8 @@
 package edu.csulb.android.friendfinder;
 
 import android.Manifest;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -15,14 +13,12 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -39,6 +35,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
@@ -61,7 +58,9 @@ public class MapActivity extends SelectorActivity implements OnMapReadyCallback,
     private List<String> friendsList = new ArrayList<>();
     private Map<String,LatLng> friendsLocations = new HashMap<>();
     private Map<String, Marker> friendsMarkers = new HashMap<>();
+    private FriendAdapter friendAdapter;
     private FirebaseHandler fbHandler;
+    private DatabaseReference fbDatabase;
 
     private static final int MY_LOCATION_PERMISSION_REQUEST_CODE = 101;
 
@@ -71,6 +70,16 @@ public class MapActivity extends SelectorActivity implements OnMapReadyCallback,
         setContentView(R.layout.activity_map);
 
         fbHandler = new FirebaseHandler();
+        fbDatabase = FirebaseDatabase.getInstance().getReference();
+        userID = getIntent().getStringExtra("uid");
+        Runnable readFriends = new Runnable() {
+            @Override
+            public void run() {
+                Log.d("ONCREATE", "Running the readFriends Thread");
+                friendsList = fbHandler.readFriends(userID);
+            }
+        };
+        readFriends.run();
 
         // reference to map fragment
         MapFragment mapFrag = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
@@ -94,15 +103,13 @@ public class MapActivity extends SelectorActivity implements OnMapReadyCallback,
         drawerLayout.setDrawerListener(new DrawerLayout.DrawerListener() {
             @Override
             public void onDrawerSlide(View drawerView, float slideOffset) {
-                // HERE2
-                fbHandler.getFriendLocationMap(friendsList);
-
 
             }
 
             @Override
             public void onDrawerOpened(View drawerView) {
                 drawerToggle.setHomeAsUpIndicator(R.drawable.icon_map);
+                fbHandler.getFriendLocationMap(friendsList);
             }
 
             @Override
@@ -116,10 +123,8 @@ public class MapActivity extends SelectorActivity implements OnMapReadyCallback,
             }
         });
 
-        userID = getIntent().getStringExtra("uid");
-
-        friendsList = fbHandler.readFriends(userID);
         friendsLocations = fbHandler.getFriendLocationMap(friendsList);
+        friendAdapter = new FriendAdapter(getApplicationContext(), R.layout.row, friendsList);
 
         final Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
@@ -132,7 +137,7 @@ public class MapActivity extends SelectorActivity implements OnMapReadyCallback,
                 }
                 // reference list view and set adapter
                 ListView friends_listview = (ListView) findViewById(R.id.friends_listview);
-                friends_listview.setAdapter(new FriendAdapter(getApplicationContext(), R.layout.row, friendsList));
+                friends_listview.setAdapter(friendAdapter);
                 friends_listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -291,10 +296,8 @@ public class MapActivity extends SelectorActivity implements OnMapReadyCallback,
 
         // TODO: Send my location to database
         // update location to firebase in intervals
-        FirebaseDatabase.getInstance().getReference()
-                .child("users").child(userID).child("latitude").setValue(latlong.latitude);
-        FirebaseDatabase.getInstance().getReference()
-                .child("users").child(userID).child("longitude").setValue(latlong.longitude);
+        fbDatabase.child("users").child(userID).child("latitude").setValue(latlong.latitude);
+        fbDatabase.child("users").child(userID).child("longitude").setValue(latlong.longitude);
     }
 
     // Will be called whenever device is connected and disconnected
@@ -357,35 +360,11 @@ public class MapActivity extends SelectorActivity implements OnMapReadyCallback,
         return true;
     }
 
-//    public void friendsListFeatureListener(View v) {
-//        switch(v.getId()) {
-//            case R.id.friends_call:
-//                Log.d("FRIENDS LIST FEATURE", "You clicked to call your friend");
-//                // TODO: Make intent to call. Figure out which friend you tapped
-//                Intent phoneIntent = new Intent(Intent.ACTION_DIAL);
-//                phoneIntent.setData(Uri.parse("tel:888-8888")); // get friends number
-//
-//                // getting friend's name
-//                TextView friendname_textview = (TextView) v.findViewById(R.id.friends_name);
-//                Log.d("CALLING INTENT", "Friend's name: " + friendname_textview.getText());
-//                try {
-//                    startActivity(phoneIntent);
-//                }
-//                catch(final SecurityException ex) {
-//
-//                }
-//                break;
-//            case R.id.friends_message:
-//                Log.d("FRIENDS LIST FEATURE", "You clicked to message your friend");
-//                // TODO: Make intent to message. Figure out which friend you tapped
-//                break;
-//        }
-//    }
-
     public void addFriendButtonListener(View view) {
         // TODO: Handle listener for "Add Friend" button in the friend's list
         Log.d("FRIENDS LIST FEATURE", "You clicked on Add a Friend button");
-        alertDialog();
+        alertDialog(friendsList, this);
+        Log.d("ADD FRIEND", "friendsList: " + friendsList.toString());
     }
 
     @Override
