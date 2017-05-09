@@ -10,11 +10,17 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 import java.util.List;
 import java.util.Map;
 
@@ -24,6 +30,8 @@ public class SelectorActivity extends BaseActivity {
     private String username;
     private List<String> friends;
     private EditText input;
+    private boolean friendIsValid = false;
+    boolean hasShown = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,7 +40,7 @@ public class SelectorActivity extends BaseActivity {
 
         userID = getIntent().getStringExtra("uid");
         username = getIntent().getStringExtra("username");
-        input = new EditText(SelectorActivity.this);
+
 
         TextView textView = (TextView) findViewById(R.id.text_view);
         textView.setText("Signed in as " + username);
@@ -54,7 +62,8 @@ public class SelectorActivity extends BaseActivity {
     }
 
     public void alertDialog(){
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(SelectorActivity.this);
+        input = new EditText(SelectorActivity.this);
+        AlertDialog alertDialog = new AlertDialog.Builder(SelectorActivity.this).create();
         alertDialog.setTitle("Add Friend");
         alertDialog.setMessage("Enter Username");
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
@@ -64,20 +73,23 @@ public class SelectorActivity extends BaseActivity {
         alertDialog.setView(input);
         alertDialog.setIcon(R.mipmap.friend_icon);
 
-        alertDialog.setPositiveButton("ADD",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
+        DialogInterface.OnClickListener dialogClick = new DialogInterface.OnClickListener(){
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which){
+                    case DialogInterface.BUTTON_POSITIVE:
                         addFriend();
-                    }
-                });
+                        break;
+                    case DialogInterface.BUTTON_NEGATIVE:
+                        break;
+                }
+                dialog.dismiss();
+            }
+        };
 
-        alertDialog.setNegativeButton("CANCEL",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-                    }
-                });
-
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Add Friend", dialogClick);
+        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "Cancel", dialogClick);
         alertDialog.show();
     }
 
@@ -89,6 +101,26 @@ public class SelectorActivity extends BaseActivity {
             return;
         }
 
+        FirebaseDatabase.getInstance().getReference().child("users")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            User user = snapshot.getValue(User.class);
+                            Log.d("VALID-TEST", user.username);
+                            if (friendName.equals(user.username)) {
+                                friendIsValid = true;
+                                Log.d("VALID-TEST", user.username + "exists");
+                                return;
+                            }
+                        }
+                    }
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Log.d("DATA-ERROR", "error: " + databaseError.getCode() );
+                    }
+                });
+
         // get friends as list
         final FirebaseHandler fbHandler = new FirebaseHandler();
         showProgressDialog();
@@ -97,6 +129,11 @@ public class SelectorActivity extends BaseActivity {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
+                if(!friendIsValid){
+                    Toast.makeText(getApplicationContext(),friendName + " Doesn't Exist",Toast.LENGTH_SHORT).show();
+                    hideProgressDialog();
+                    return;
+                }
                 // add new friend to list
                 if(!friends.contains(friendName)){
                     friends.add(friendName);
@@ -105,7 +142,7 @@ public class SelectorActivity extends BaseActivity {
                     Toast.makeText(getApplicationContext(),friendName + " Was Added",Toast.LENGTH_SHORT).show();
 
                     username = getIntent().getStringExtra("username");
-                    Log.d("WHY", "Usernmae: " + username);
+                    Log.d("WHY", "Username: " + username);
                     // add yourself to friend's friendlist
                     final Map friendInfo =fbHandler.getFriendsFriendList(username,friendName);
                     handler.postDelayed(new Runnable() {
@@ -120,7 +157,7 @@ public class SelectorActivity extends BaseActivity {
                                 Log.d("WHY", "Friend's friends: " + s);
                             }
                         }
-                    },500);
+                    },750);
 
                 }
                 else{

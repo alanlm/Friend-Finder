@@ -28,6 +28,7 @@ public class FirebaseHandler {
     private Map<String,LatLng> friendsLocation = new HashMap<>();
     private Map<String,List<String>> friendInfo = new HashMap<>();
     private String uName;
+    private boolean userIsValid = false;
 
 
     public String getUsername(String uid) {
@@ -65,6 +66,31 @@ public class FirebaseHandler {
                         Log.d("DATA-ERROR", "error: " + databaseError.getCode() );
                     }
                 });
+    }
+
+    public boolean userIsValid(String username){
+        final String localUsername = username;
+        mDatabase.child("users")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        userIsValid = true;
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            User user = snapshot.getValue(User.class);
+                            Log.d("VALID-TEST", user.username);
+                            if (localUsername.equals(user.username)) {
+                                userIsValid = false;
+                                Log.d("VALID-TEST", user.username + "exists");
+                                return;
+                            }
+                        }
+                    }
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Log.d("DATA-ERROR", "error: " + databaseError.getCode() );
+                    }
+                });
+        return userIsValid;
     }
 
     public List<String> readFriends(String uid){
