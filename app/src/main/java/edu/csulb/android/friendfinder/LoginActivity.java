@@ -1,16 +1,13 @@
 package edu.csulb.android.friendfinder;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
 import android.telephony.PhoneNumberUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -21,7 +18,6 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.auth.api.Auth;
 import com.google.firebase.auth.AuthCredential;
@@ -33,19 +29,9 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.util.Locale;
-import java.util.Random;
 
 public class LoginActivity extends BaseActivity implements GoogleApiClient.OnConnectionFailedListener {
     private static final int RC_SIGN_IN = 9001;
@@ -57,7 +43,10 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
     private String username;
     private String phoneNumber;
     private EditText phoneNumberField;
+
+    private boolean bIsSignedIn = false;
     private boolean userIsValid = false;
+
 
     private GoogleApiClient mGoogleApiClient;
     private FirebaseUser fbUser;
@@ -93,6 +82,7 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                 fbUser = firebaseAuth.getCurrentUser();
                 if (fbUser != null) {
                     // User is signed in
+                    bIsSignedIn = true;
                     Log.d("SIGNIN","signed in as " + fbUser.getUid());
 
                     mDatabase.child("users").child(fbUser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -229,7 +219,39 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
 
             username = usernameField.getText().toString();
 
-            mDatabase.child("users")
+            if (bIsSignedIn == true) {
+
+                User user = new User(username);
+                mDatabase.child("users").child(fbUser.getUid()).setValue(user);
+
+                // Debugging
+                Log.d("SIGNIN", "Username is: " + username);
+                Log.d("SIGNIN", "UsernameField is: " + usernameField.getText().toString());
+
+                // check if username has been entered and matches whats on the database
+
+                phoneNumberField = (EditText) findViewById(R.id.phonenumber_login);
+                if (usernameField.getText().toString().length() != 0) {
+                    username = usernameField.getText().toString();
+                }
+                if (phoneNumberField.getText().length() <= 0) // no phone number is entered
+                    Toast.makeText(this, "Please enter a phone number", Toast.LENGTH_SHORT).show();
+                if (phoneNumberField.getText().toString().length() != 0) { // field is not empty, TODO check valid phone number
+                    // phoneNumber = phoneNumberField.getText().toString();
+                    System.out.println("Phone number text field" + phoneNumberField.getText().toString());
+                    phoneNumber = PhoneNumberUtils.formatNumber
+                            (phoneNumberField.getText().toString(), Locale.getDefault().getCountry());
+                    Log.d("PhoneNumber", " : " + phoneNumber);
+                }
+                mDatabase.child("users").child(fbUser.getUid()).setValue(user);
+                mDatabase.child("users").child(fbUser.getUid()).child("phone-number").setValue(phoneNumber); // adding phone number to database
+
+                Intent intent = new Intent(this, SelectorActivity.class);
+                intent.putExtra("uid", fbUser.getUid());
+                intent.putExtra("username", username);
+                startActivity(intent);
+                //========
+                mDatabase.child("users")
                     .addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
@@ -250,11 +272,11 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                         }
                     });
 
-            showProgressDialog();
-            final Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
+                showProgressDialog();
+                final Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                  @Override
+                  public void run() {
                     hideProgressDialog();
                     if(!userIsValid){
                         Toast.makeText(LoginActivity.this, "Username already exists", Toast.LENGTH_SHORT).show();
@@ -276,8 +298,12 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                           intent.putExtra("uid",fbUser.getUid());
                           intent.putExtra("username",username);
                           startActivity(intent);
-                   }
-                },500);
+                      }
+                   }, 500);
+                } else {
+                Toast.makeText(this, "Please sign in with your google account", Toast.LENGTH_SHORT).show();
+                signIn();
+            }
         }
     }
 
