@@ -56,6 +56,7 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
     private String username;
     private String phoneNumber;
     private EditText phoneNumberField;
+    private boolean bIsSignedIn = false;
 
     private GoogleApiClient mGoogleApiClient;
     private FirebaseUser fbUser;
@@ -91,6 +92,7 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                 fbUser = firebaseAuth.getCurrentUser();
                 if (fbUser != null) {
                     // User is signed in
+                    bIsSignedIn = true;
                     Log.d("SIGNIN","signed in as " + fbUser.getUid());
 
                     mDatabase.child("users").child(fbUser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -212,35 +214,41 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
 
             username = usernameField.getText().toString();
 
-            User user = new User(username);
-            mDatabase.child("users").child(fbUser.getUid()).setValue(user);
+            if (bIsSignedIn == true) {
 
-            // Debugging
-            Log.d("SIGNIN", "Username is: " + username);
-            Log.d("SIGNIN", "UsernameField is: " + usernameField.getText().toString());
+                User user = new User(username);
+                mDatabase.child("users").child(fbUser.getUid()).setValue(user);
 
-            // check if username has been entered and matches whats on the database
-          
-            phoneNumberField = (EditText) findViewById(R.id.phonenumber_login);
-            if(usernameField.getText().toString().length() != 0) {
-                username = usernameField.getText().toString();
+                // Debugging
+                Log.d("SIGNIN", "Username is: " + username);
+                Log.d("SIGNIN", "UsernameField is: " + usernameField.getText().toString());
+
+                // check if username has been entered and matches whats on the database
+
+                phoneNumberField = (EditText) findViewById(R.id.phonenumber_login);
+                if (usernameField.getText().toString().length() != 0) {
+                    username = usernameField.getText().toString();
+                }
+                if (phoneNumberField.getText().length() <= 0) // no phone number is entered
+                    Toast.makeText(this, "Please enter a phone number", Toast.LENGTH_SHORT).show();
+                if (phoneNumberField.getText().toString().length() != 0) { // field is not empty, TODO check valid phone number
+                    // phoneNumber = phoneNumberField.getText().toString();
+                    System.out.println("Phone number text field" + phoneNumberField.getText().toString());
+                    phoneNumber = PhoneNumberUtils.formatNumber
+                            (phoneNumberField.getText().toString(), Locale.getDefault().getCountry());
+                    Log.d("PhoneNumber", " : " + phoneNumber);
+                }
+                mDatabase.child("users").child(fbUser.getUid()).setValue(user);
+                mDatabase.child("users").child(fbUser.getUid()).child("phone-number").setValue(phoneNumber); // adding phone number to database
+
+                Intent intent = new Intent(this, SelectorActivity.class);
+                intent.putExtra("uid", fbUser.getUid());
+                intent.putExtra("username", username);
+                startActivity(intent);
+            } else {
+                Toast.makeText(this, "Please sign in with your google account", Toast.LENGTH_SHORT).show();
+                signIn();
             }
-            if (phoneNumberField.getText().length() <= 0 ) // no phone number is entered
-                Toast.makeText(this, "Please enter a phone number", Toast.LENGTH_SHORT).show();
-            if (phoneNumberField.getText().toString().length() != 0) { // field is not empty, TODO check valid phone number
-                // phoneNumber = phoneNumberField.getText().toString();
-                System.out.println("Phone number text field" + phoneNumberField.getText().toString());
-                phoneNumber = PhoneNumberUtils.formatNumber
-                        (phoneNumberField.getText().toString(), Locale.getDefault().getCountry());
-                Log.d("PhoneNumber", " : " + phoneNumber);
-            }
-            mDatabase.child("users").child(fbUser.getUid()).setValue(user);
-            mDatabase.child("users").child(fbUser.getUid()).child("phone-number").setValue(phoneNumber); // adding phone number to database
-          
-            Intent intent = new Intent(this,SelectorActivity.class);
-            intent.putExtra("uid",fbUser.getUid());
-            intent.putExtra("username",username);
-            startActivity(intent);
         }
     }
 

@@ -60,6 +60,8 @@ public class MapActivity extends SelectorActivity implements OnMapReadyCallback,
     private String userID;
     private List<String> friendsList = new ArrayList<>();
     private Map<String,LatLng> friendsLocations = new HashMap<>();
+    private Map<String, Marker> friendsMarkers = new HashMap<>();
+    private FirebaseHandler fbHandler;
 
     private static final int MY_LOCATION_PERMISSION_REQUEST_CODE = 101;
 
@@ -67,6 +69,8 @@ public class MapActivity extends SelectorActivity implements OnMapReadyCallback,
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
+
+        fbHandler = new FirebaseHandler();
 
         // reference to map fragment
         MapFragment mapFrag = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
@@ -90,6 +94,9 @@ public class MapActivity extends SelectorActivity implements OnMapReadyCallback,
         drawerLayout.setDrawerListener(new DrawerLayout.DrawerListener() {
             @Override
             public void onDrawerSlide(View drawerView, float slideOffset) {
+                // HERE2
+                fbHandler.getFriendLocationMap(friendsList);
+
 
             }
 
@@ -111,7 +118,6 @@ public class MapActivity extends SelectorActivity implements OnMapReadyCallback,
 
         userID = getIntent().getStringExtra("uid");
 
-        FirebaseHandler fbHandler = new FirebaseHandler();
         friendsList = fbHandler.readFriends(userID);
         friendsLocations = fbHandler.getFriendLocationMap(friendsList);
 
@@ -146,7 +152,9 @@ public class MapActivity extends SelectorActivity implements OnMapReadyCallback,
                                         .defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
 
                         // adding friends marker and moving camera to friends position
-                        gMap.addMarker(friendsMarker);
+                        if(friendsMarkers.get(friendsName) != null)
+                            friendsMarkers.get(friendsName).remove();
+                        friendsMarkers.put(friendsName, gMap.addMarker(friendsMarker));
                         gMap.moveCamera(CameraUpdateFactory.newLatLng(friendsLocation));
                         gMap.animateCamera(CameraUpdateFactory.zoomTo(15));
 
@@ -329,6 +337,8 @@ public class MapActivity extends SelectorActivity implements OnMapReadyCallback,
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
             case android.R.id.home:
+                // HERE
+                fbHandler.getFriendLocationMap(friendsList);
                 Log.d("OPTIONS ITEM SELECTED", "You clicked the custom hamburger icon");
                 if(drawerLayout.isDrawerOpen(GravityCompat.START)) {
                     drawerLayout.closeDrawers();
