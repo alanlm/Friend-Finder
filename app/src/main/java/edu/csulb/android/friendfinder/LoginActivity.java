@@ -212,8 +212,12 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                 Toast.makeText(this, "Please enter a username", Toast.LENGTH_SHORT).show();
                 return;
             }
-            if (phoneNumberField.getText().length() <= 0 && phoneNumberField.getText().length() >= 12) {// no phone number is entered
+            if (phoneNumberField.getText().length() <= 0) {// no phone number is entered
                 Toast.makeText(this, "Please enter a phone number", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (phoneNumberField.getText().length() < 10) {
+                Toast.makeText(this, "Please enter a valid phone number", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -234,8 +238,7 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                 if (usernameField.getText().toString().length() != 0) {
                     username = usernameField.getText().toString();
                 }
-                if (phoneNumberField.getText().length() <= 0) // no phone number is entered
-                    Toast.makeText(this, "Please enter a phone number", Toast.LENGTH_SHORT).show();
+
                 if (phoneNumberField.getText().toString().length() != 0) { // field is not empty, TODO check valid phone number
                     // phoneNumber = phoneNumberField.getText().toString();
                     System.out.println("Phone number text field" + phoneNumberField.getText().toString());
@@ -250,7 +253,7 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                 intent.putExtra("uid", fbUser.getUid());
                 intent.putExtra("username", username);
                 startActivity(intent);
-                //========
+
                 mDatabase.child("users")
                     .addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
