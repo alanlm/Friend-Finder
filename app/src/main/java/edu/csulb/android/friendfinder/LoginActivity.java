@@ -244,7 +244,7 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                     Log.d("PhoneNumber", " : " + phoneNumber);
                 }
                 mDatabase.child("users").child(fbUser.getUid()).setValue(user);
-                mDatabase.child("users").child(fbUser.getUid()).child("phone-number").setValue(phoneNumber); // adding phone number to database
+                mDatabase.child("users").child(fbUser.getUid()).child("phonenumber").setValue(phoneNumber); // adding phone number to database
 
                 Intent intent = new Intent(this, SelectorActivity.class);
                 intent.putExtra("uid", fbUser.getUid());
