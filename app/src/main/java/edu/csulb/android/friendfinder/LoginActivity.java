@@ -233,7 +233,6 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
             Log.d("SIGNIN", "UsernameField is: " + usernameField.getText().toString());
 
             // check if username has been entered and matches whats on the database
-
             mDatabase.child("users")
                     .addValueEventListener(new ValueEventListener() {
                         @Override
